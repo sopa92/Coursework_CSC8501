@@ -7,6 +7,7 @@
 #include "Puzzle.h"
 
 #include <string>
+#include <fstream>
 
 using namespace std;
 
@@ -16,14 +17,15 @@ bool isExistingNumber(int givenInput, Puzzle* puzzleArr);
 void SettingValuesManually(Puzzle* puzzle, int rows, int cols);
 void SettingValuesAuto(Puzzle* puzzle, int rows, int cols);
 void CreatePuzzleConfigurationsRandomly();
+void StorePuzzleInFile(Puzzle* puzzle);
 
 int main()
 {
 	Puzzle mainPuzzle;
 	int rows = (&mainPuzzle)->get_hor_size();
 	int columns = (&mainPuzzle)->get_vert_size();
-	SettingValuesManually(&mainPuzzle, rows, columns);
-	//SettingValuesAuto(&mainPuzzle, rows, columns);
+	//SettingValuesManually(&mainPuzzle, rows, columns);
+	SettingValuesAuto(&mainPuzzle, rows, columns);
 	cout << mainPuzzle << endl ;
 
 	CreatePuzzleConfigurationsRandomly();
@@ -65,32 +67,37 @@ void SettingValuesAuto(Puzzle* puzzle, int rows, int cols) {
 				rndNumber = rand() % 20;
 			}
 			puzzle->set_element(i, j, rndNumber);
-			//cout << puzzle->get_element(i, j) << "\t";
 		}
-		//cout << endl;
 	}
 }
 
 void CreatePuzzleConfigurationsRandomly() {
 	cout << "How many 15-puzzle configurations do you want me to create?" << endl;
 	int inputAmount = GetInputNumber();
+	ofstream my15file;
+	if (!my15file.is_open())
+	{
+		my15file.open("15-File.txt");
+	}
+	my15file << inputAmount << endl;
 	for (int i = 0; i < inputAmount; ++i) {
 		Puzzle randPuzzle;
 		SettingValuesAuto(&randPuzzle, randPuzzle.get_hor_size(), randPuzzle.get_vert_size());
-		cout << "Puzzle " << i+1 << endl << randPuzzle << "------------------------------" << endl;
+		my15file << randPuzzle << endl;
 	}
+	my15file.close();
 }
 
 int GetInputNumber() {
 	int givenInput = 0;
-	cout << endl << "Type your chosen number and press Enter:" << endl;
+	cout << endl << "Type a number and press Enter:" << endl;
 	cin >> givenInput;
 	while (true) {
 		if (cin.fail())
 		{
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
-			cout << "This is a character. Please choose a number." << endl;
+			cout << "This is a character. Please type a number." << endl;
 			cin >> givenInput;
 		}
 		else {
@@ -109,15 +116,15 @@ int GetInputNumber(Puzzle* puzzleArr) {
 		{
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
-			cout << "This is a character. Please choose a number between 1 and 20." << endl;
+			cout << "This is a character. Please type a number between 1 and 20." << endl;
 			cin >> givenInput;
 		}
 		else if (givenInput < 1 || givenInput >20) {
-			cout << "You should choose a number between 1 and 20." << endl;
+			cout << "You should type a number between 1 and 20." << endl;
 			cin >> givenInput;
 		}
 		else if (isExistingNumber(givenInput, puzzleArr)) {
-			cout << "You must not choose an existing number. \nPlease choose another number between 1 and 20." << endl;
+			cout << "You must not choose an existing number. \nPlease type another number between 1 and 20." << endl;
 			cin >> givenInput;
 		}
 		else {
