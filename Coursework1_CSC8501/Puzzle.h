@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <ostream>
 
 class Puzzle {
 public:
@@ -12,6 +13,7 @@ public:
 	int get_element(int row, int col) const { return puzzleArr[row][col]; }
 	int get_hor_size() const { return hor_size; }
 	int get_vert_size() const { return vert_size; }
+	friend std::ostream& operator << (std::ostream& ostr, const Puzzle& puzzle);
 protected:
 	int** puzzleArr;
 	int hor_size;

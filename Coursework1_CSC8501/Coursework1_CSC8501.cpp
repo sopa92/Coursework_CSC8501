@@ -19,13 +19,13 @@ int main()
 {
 	Puzzle mainPuzzle;
 	SettingValuesManually(&mainPuzzle);
-	
+
+	cout << mainPuzzle;
 	return 0;
 }
 
 void SettingValuesManually(Puzzle* puzzle) {
-	int wantedNumbers = 15;
-	cout << "Please give me " << wantedNumbers << " numbers between 1 and 20." << endl;
+	cout << "Please give me 15 numbers between 1 and 20." << endl;
 	cout << "| 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 | 13 | 14 | 15 |" << endl;
 	cout << "----------------------------------------------------------------------------" << endl;
 	string printedArray = "| __ | __ | __ | __ | __ | __ | __ | __ | __ | __ | __ | __ | __ | __ | __ |";
@@ -43,15 +43,11 @@ void SettingValuesManually(Puzzle* puzzle) {
 			string newElement = std::to_string(puzzle->get_element(i, j));
 			printedArray.replace(printedArray.find(unfilledGap), unfilledGap.length(), newElement);
 			cout << printedArray << endl;
-			--wantedNumbers;
-			if (wantedNumbers > 0)
-				cout << "I need " << wantedNumbers << " more" << endl;
-			else
-				cout << "Thank you!" << endl;
 		}
 	}
-
+	cout << "Thank you! The 15-puzzle is now ready!" << endl;
 }
+
 
 int GetInputNumber(Puzzle* puzzleArr) {
 	int givenInput = 0;

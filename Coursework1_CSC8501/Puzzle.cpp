@@ -17,3 +17,13 @@ Puzzle::~Puzzle()
 	delete[] puzzleArr;
 }
 
+std::ostream& operator<<(std::ostream& ostr, const Puzzle& puzzle)
+{
+	for (int i = 0; i < puzzle.get_hor_size(); ++i) {
+		for (int j = 0; j < puzzle.get_vert_size(); ++j) {
+			ostr << puzzle.get_element(i, j) << "\t";
+		}
+		ostr << std::endl;
+	}
+	return ostr;
+}
