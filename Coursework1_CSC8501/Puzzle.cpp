@@ -17,15 +17,83 @@ Puzzle::~Puzzle()
 	delete[] puzzleArr;
 }
 
+
 std::ostream& operator<<(std::ostream& ostr, const Puzzle& puzzle)
 {
-	for (int i = 0; i < puzzle.get_hor_size(); ++i) {
-		for (int j = 0; j < puzzle.get_vert_size(); ++j) {
-			int value = puzzle.get_element(i, j);
+	for (int i = 0; i < puzzle.Get_hor_size(); ++i) {
+		for (int j = 0; j < puzzle.Get_vert_size(); ++j) {
+			int value = puzzle.Get_element(i, j);
 			if(value!=0)
 			ostr << value << "\t";
+			else 
+				ostr << "\t";
 		}
 		ostr << std::endl;
 	}
 	return ostr;
+}
+
+void Puzzle::GetAvailableSwaps(std::vector<char>& availSwaps, int rows, int cols, int zero_x, int zero_y ){
+	if (zero_x < rows - 1)
+		availSwaps.push_back('D');
+	if (zero_x > 0)
+		availSwaps.push_back('U');
+	if (zero_y < cols - 1)
+		availSwaps.push_back('R');
+	if (zero_y > 0)
+		availSwaps.push_back('L');
+}
+
+bool Puzzle::MoveRandomlyAround(char direction, int zero_x, int zero_y, Puzzle* puzzle, int prev_zero_x, int prev_zero_y, int attempts) {
+	
+	switch (direction) {
+	case 'U':
+		if (prev_zero_x == zero_x - 1 && prev_zero_y == zero_y && attempts>0) {
+			return false;
+		}
+		swap(zero_x, zero_y, puzzle, zero_x - 1, zero_y);
+		break;
+	case 'D':
+		if (prev_zero_x == zero_x + 1 && prev_zero_y == zero_y) {
+			return false;
+		}
+		swap(zero_x, zero_y, puzzle, zero_x + 1, zero_y);
+		break;
+	case 'L':
+		if (prev_zero_x == zero_x && prev_zero_y == zero_y - 1) {
+			return false;
+		}
+		swap(zero_x, zero_y, puzzle, zero_x, zero_y - 1);
+		break;
+	case 'R':
+		if (prev_zero_x == zero_x && prev_zero_y == zero_y + 1) {
+			return false;
+		}
+		swap(zero_x, zero_y, puzzle, zero_x, zero_y + 1);
+		break;
+	}
+	++attempts;
+	return true;
+}
+
+void Puzzle::moveRight(int x, int y, Puzzle& puzzle) {
+	swap(x, y, &puzzle, x, y + 1);
+}
+
+void Puzzle::moveLeft(int x, int y, Puzzle& puzzle) {
+	swap(x, y, &puzzle, x, y - 1);
+}
+
+void Puzzle::moveUp(int x, int y, Puzzle& puzzle) {
+	swap(x, y, &puzzle, x - 1, y);
+}
+
+void Puzzle::moveDown(int x, int y, Puzzle& puzzle) {
+	swap(x, y, &puzzle, x + 1, y);
+}
+
+void Puzzle::swap(int x, int y, Puzzle* puzzle, int new_x, int new_y) {
+	puzzle->Set_element(x, y, puzzle->Get_element(new_x, new_y));
+	puzzle->Set_element(new_x, new_y, 0);
+	puzzle->Set_zero_position(new_x, new_y);
 }
