@@ -24,9 +24,9 @@ std::ostream& operator<<(std::ostream& ostr, const Puzzle& puzzle)
 		for (int j = 0; j < puzzle.Get_vert_size(); ++j) {
 			int value = puzzle.Get_element(i, j);
 			if(value!=0)
-			ostr << value << "\t";
+			ostr << value << " ";
 			else 
-				ostr << "\t";
+				ostr << " ";
 		}
 		ostr << std::endl;
 	}
@@ -54,19 +54,19 @@ bool Puzzle::MoveRandomlyAround(char direction, int zero_x, int zero_y, Puzzle* 
 		swap(zero_x, zero_y, puzzle, zero_x - 1, zero_y);
 		break;
 	case 'D':
-		if (prev_zero_x == zero_x + 1 && prev_zero_y == zero_y) {
+		if (prev_zero_x == zero_x + 1 && prev_zero_y == zero_y && attempts > 0) {
 			return false;
 		}
 		swap(zero_x, zero_y, puzzle, zero_x + 1, zero_y);
 		break;
 	case 'L':
-		if (prev_zero_x == zero_x && prev_zero_y == zero_y - 1) {
+		if (prev_zero_x == zero_x && prev_zero_y == zero_y - 1 && attempts > 0) {
 			return false;
 		}
 		swap(zero_x, zero_y, puzzle, zero_x, zero_y - 1);
 		break;
 	case 'R':
-		if (prev_zero_x == zero_x && prev_zero_y == zero_y + 1) {
+		if (prev_zero_x == zero_x && prev_zero_y == zero_y + 1 && attempts > 0) {
 			return false;
 		}
 		swap(zero_x, zero_y, puzzle, zero_x, zero_y + 1);

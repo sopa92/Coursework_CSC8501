@@ -8,148 +8,236 @@
 
 #include <string>
 #include <fstream>
+#include <sstream>
+#include <algorithm>
 
 using namespace std;
 
 int GetInputNumber();
 int GetInputNumber(Puzzle* puzzleArr);
 bool isExistingNumber(int givenInput, Puzzle* puzzleArr);
-void SettingValuesManually(Puzzle* puzzle, int rows, int cols);
-void SettingValuesAuto(Puzzle* puzzle, int rows, int cols);
+void SettingValuesManually(Puzzle* puzzle);
+void SettingValuesAuto(Puzzle* puzzle);
 void CreatePuzzleConfigurationsRandomly();
-void startMovingRandomly(Puzzle* puzzle, int rows, int cols);
-int FindContinuousRows(Puzzle* puzzle, int rows, int cols);
-int FindReversedContinuousRows(Puzzle* puzzle, int rows, int cols);
-int FindReversedContinuousCols(Puzzle* puzzle, int rows, int cols);
-int FindContinuousCols(Puzzle* puzzle, int rows, int cols);
+void moveAndCalculateContinuous(Puzzle* puzzle);
+int FindContinuousRows(Puzzle* puzzle, bool reversed);
+int FindContinuousCols(Puzzle* puzzle, bool reversed);
 bool startOverGame();
+void ReadPuzzleFromFileAndMoveAround();
+void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence);
+void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle);
+bool turnHasCompleted(Puzzle* puzzle);
+void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullRowString, int& fileRow, int& i);
+int rows, columns;
 
 int main()
 {
 	bool startOver = true;
 	while (startOver) {
 		Puzzle mainPuzzle;
-		int rows = (&mainPuzzle)->Get_hor_size();
-		int columns = (&mainPuzzle)->Get_vert_size();
-		SettingValuesManually(&mainPuzzle, rows, columns);
-		//SettingValuesAuto(&mainPuzzle, rows, columns);
-		cout << mainPuzzle << endl;
+		rows = (&mainPuzzle)->Get_hor_size();
+		columns = (&mainPuzzle)->Get_vert_size();
+		//SettingValuesManually(&mainPuzzle);
+		//SettingValuesAuto(&mainPuzzle);
+		//cout << mainPuzzle << endl;
 
-		//CreatePuzzleConfigurationsRandomly();
+		CreatePuzzleConfigurationsRandomly();
 
-		
-		startMovingRandomly(&mainPuzzle, rows, columns);
+		ReadPuzzleFromFileAndMoveAround();
+		//startMovingRandomly(&mainPuzzle);
 
 		startOver = startOverGame();
 	}
 	return 0;
 }
 
-
-void startMovingRandomly(Puzzle* puzzle, int rows, int cols) {
-	vector<char> availSwaps;
-	int countMoves = 1;
-	int prevPositionX = rows - 1;
-	int prevPositionY = cols - 1;
-	int continuousRows = 0, continuousCols = 0, revContinuousRows = 0, revContinuousCols = 0;
-	do {
-		bool moved = false;
-		int zero_x = puzzle->Get_zero_x();
-		int zero_y = puzzle->Get_zero_y();
-		puzzle->GetAvailableSwaps(availSwaps, rows, cols, zero_x, zero_y);
-		int attempts = 0;
-		while (!moved) {
-			int randValue = rand() % availSwaps.size();
-			char direction = availSwaps[randValue];
-			moved = puzzle->MoveRandomlyAround(direction, zero_x, zero_y, puzzle, prevPositionX, prevPositionY, attempts);
-			if(!moved)
-				availSwaps.erase(availSwaps.begin() + (randValue));
-			else {
-				prevPositionX = zero_x;
-				prevPositionY = zero_y;
+void ReadPuzzleFromFileAndMoveAround() {
+	try {
+		ifstream my15file;
+		my15file.open("15-File.txt");
+		string fullRowString;
+		istringstream iss(fullRowString);
+		vector<string> fullRows;
+		Puzzle puz;
+		int i = 0;
+		int fileRow = 0;
+		while (getline(my15file, fullRowString)) {
+			if (i >= rows) {
+				moveAndCalculateContinuous(&puz);
+				Puzzle puz;
+				i = 0;
+			}
+			if (fullRowString.size() > 7 && i < rows) {
+				readPuzzleArrayFromFile(&puz, fullRows, fullRowString, fileRow, i);
 			}
 		}
-		availSwaps.clear();
-		countMoves++;
-		cout << endl << *puzzle;
-		continuousRows += FindContinuousRows(puzzle, rows, cols);
-		revContinuousRows += FindReversedContinuousRows(puzzle, rows, cols);
-		continuousCols += FindContinuousCols(puzzle, rows, cols);
-		revContinuousCols += FindReversedContinuousCols(puzzle, rows, cols);
-	} while (puzzle->Get_zero_x() != rows - 1 || puzzle->Get_zero_y() != cols - 1);
-	cout << endl << countMoves << endl << endl;
-	cout << "row: " << continuousRows << endl;
-	cout << "column: " << continuousCols << endl;
-	cout << "reverse row: " << revContinuousRows << endl;
-	cout << "reverse column: " << revContinuousCols << endl;
+		my15file.close();
+	}
+	catch(exception){
+		cout << "In order to use a file, I have to create it first." << endl;
+	}
 }
 
-int FindContinuousRows(Puzzle* puzzle, int rows, int cols) {
+void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullRowString, int& fileRow, int& i) {
+	fullRows.push_back(fullRowString);
+	stringstream ssin(fullRows[fileRow]);
+	for (int j = 0; j < columns; ++j) {
+		if (i == rows - 1 && j == columns - 1) {
+			puz->Set_element(i, j, 0);
+			puz->Set_zero_position(i, j);
+			break;
+		}
+		if (ssin.good()) {
+			int intValue;
+			ssin >> intValue;
+			if (!fullRows.empty())
+				puz->Set_element(i, j, intValue);
+		}
+	}
+	++i;
+	++fileRow;
+}
+
+void moveAndCalculateContinuous(Puzzle* puzzle) {
+	cout << endl << *puzzle;
+	int countMoves = 1;
+	int prevPositionX = rows - 1;
+	int prevPositionY = columns - 1;
+	int continuousRowsPerTurn = 0, continuousColsPerTurn = 0, revContinuousRowsPerTurn = 0, revContinuousColsPerTurn = 0;
+	int continuousRowsTotal = 0, continuousColsTotal = 0, revContinuousRowsTotal = 0, revContinuousColsTotal = 0;
+	vector<string> movesSequences;
+	int existingPath = 0;
+	while (existingPath<1000) {
+		string moveSequence;
+		continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
+		do {
+			MoveAround(puzzle, prevPositionX, prevPositionY, moveSequence);
+			FindContinuousElements(continuousRowsPerTurn, revContinuousRowsPerTurn, continuousColsPerTurn, revContinuousColsPerTurn, puzzle);
+			if (turnHasCompleted(puzzle)) {
+				if (find(movesSequences.begin(), movesSequences.end(), moveSequence) == movesSequences.end())
+				{
+					movesSequences.push_back(moveSequence);
+				}
+				else {
+					existingPath++;
+					continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
+					break;
+				}
+			}			
+		} while (!turnHasCompleted(puzzle));
+		continuousRowsTotal += continuousRowsPerTurn;
+		continuousColsTotal += continuousColsPerTurn;
+		revContinuousRowsTotal += revContinuousRowsPerTurn;
+		revContinuousColsTotal += revContinuousColsPerTurn;
+	}
+	cout << "row: " << continuousRowsTotal << endl;
+	cout << "column: " << continuousColsTotal << endl;
+	cout << "reverse row: " << revContinuousRowsTotal << endl;
+	cout << "reverse column: " << revContinuousColsTotal << endl;
+}
+
+bool turnHasCompleted(Puzzle* puzzle) {
+	return (puzzle->Get_zero_x() == rows - 1 && puzzle->Get_zero_y() == columns - 1);
+}
+
+void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence) {
+	vector<char> availSwaps;
+	bool moved = false;
+	int zero_x = puzzle->Get_zero_x();
+	int zero_y = puzzle->Get_zero_y();
+	puzzle->GetAvailableSwaps(availSwaps, rows, columns, zero_x, zero_y);
+	int attempts = 1;
+	while (!moved) {
+		int randValue = rand() % availSwaps.size();
+		char direction = availSwaps[randValue];
+		moved = puzzle->MoveRandomlyAround(direction, zero_x, zero_y, puzzle, prevPositionX, prevPositionY, attempts);
+		if (!moved)
+			availSwaps.erase(availSwaps.begin() + (randValue));
+		else {
+			moveSequence += direction;
+			prevPositionX = zero_x;
+			prevPositionY = zero_y;
+		}
+	}
+	availSwaps.clear();
+}
+
+void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle) {
+	contRows += FindContinuousRows(puzzle, false);
+	revContRows += FindContinuousRows(puzzle, true);
+	contCols += FindContinuousCols(puzzle, false);
+	revContCols += FindContinuousCols(puzzle, true);
+}
+
+int FindContinuousRows(Puzzle* puzzle, bool reversed) {
 	int continuousRows = 0;
 	bool isContinuous = true;
 	for (int i = 0; i < rows; ++i) {
 		isContinuous = true;
-		for (int j = 0; j < cols-1; ++j) {
-			if (puzzle->Get_element(i, j) + 1 != puzzle->Get_element(i, j + 1)) {
+		if (puzzle->Get_element(i, columns - 1) == 0) {
+			isContinuous = false;
+			continue;
+		}
+		for (int j = 0; j < columns - 1; ++j) {
+			int firstElement = puzzle->Get_element(i, j);
+			int nextElement = puzzle->Get_element(i, j + 1);
+			if (firstElement == 0) {
 				isContinuous = false;
+				break;
+			}
+			if (reversed) {
+				if (nextElement - firstElement != 1) {
+					isContinuous = false;
+				}
+			}
+			else {
+				if (firstElement - nextElement != 1) {
+					isContinuous = false;
+				}
 			}
 		}
 		if (isContinuous) {
-			++continuousRows;
+			++continuousRows; 
 		}
 	}
 	return continuousRows;
 }
 
-int FindReversedContinuousRows(Puzzle* puzzle, int rows, int cols) {
-	int revContRows = 0;
-	bool isContinuous = true;
-	for (int i = 0; i < rows; ++i) {
-		isContinuous = true;
-		for (int j = 0; j < cols - 1; ++j) {
-			if (puzzle->Get_element(i, j) - 1 != puzzle->Get_element(i, j + 1)) {
-				isContinuous = false;
-			}
-		}
-		if (isContinuous) {
-			++revContRows;
-		}
-	}
-	return revContRows;
-}
-
-int FindContinuousCols(Puzzle* puzzle, int rows, int cols) {
+int FindContinuousCols(Puzzle* puzzle, bool reversed) {
 	int continuousCols = 0;
 	bool isContinuous = true;
-	for (int j = 0; j < cols; ++j) {
+	for (int j = 0; j < columns; ++j) {
 		isContinuous = true;
+		if (puzzle->Get_element(rows - 1, j) == 0) {
+			isContinuous = false;
+			continue;
+		}
 		for (int i = 0; i < rows - 1; ++i) {
-			if (puzzle->Get_element(i, j) + 1 != puzzle->Get_element(i + 1, j)) {
+			int firstElement = puzzle->Get_element(i, j);
+			int nextElement = puzzle->Get_element(i + 1, j);
+			if (firstElement == 0) {
 				isContinuous = false;
+				break;
+			}
+			if (reversed) {
+				if (nextElement - firstElement != 1) {
+					isContinuous = false;
+				}
+			}
+			else {
+				if (firstElement - nextElement != 1) {
+					isContinuous = false;
+				}
 			}
 		}
 		if (isContinuous) {
 			++continuousCols;
+			//cout << "Col: " << puzzle->Get_element(0, j) << " < " << puzzle->Get_element(1, j) << " < " << puzzle->Get_element(2, j) << " < " << puzzle->Get_element(3, j) << endl;
+			/*cout << "there are continuous cols" << endl;
+			cout << *puzzle;*/
 		}
 	}
 	return continuousCols;
-}
-
-int FindReversedContinuousCols(Puzzle* puzzle, int rows, int cols) {
-	int revContCols = 0;
-	bool isContinuous = true;
-	for (int j = 0; j < cols; ++j) {
-		isContinuous = true;
-		for (int i = 0; i < rows - 1; ++i) {
-			if (puzzle->Get_element(i, j) - 1 != puzzle->Get_element(i + 1, j)) {
-				isContinuous = false;
-			}
-		}
-		if (isContinuous) {
-			++revContCols;
-		}
-	}
-	return revContCols;
 }
 
 bool startOverGame() {
@@ -169,7 +257,7 @@ bool startOverGame() {
 	return answer == 'y' ? true: false;
 }
 
-void SettingValuesManually(Puzzle* puzzle, int rows, int cols) {
+void SettingValuesManually(Puzzle* puzzle) {
 	cout << "Please give me 15 numbers between 1 and 20." << endl;
 	cout << "| 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 | 13 | 14 | 15 |" << endl;
 	cout << "----------------------------------------------------------------------------" << endl;
@@ -177,8 +265,8 @@ void SettingValuesManually(Puzzle* puzzle, int rows, int cols) {
 	string unfilledGap = "__";
 	cout << printedArray << endl;	
 	for (int i = 0; i < rows; ++i) {
-		for (int j = 0; j < cols; ++j) {
-			if (i == rows - 1 && j == cols - 1) {
+		for (int j = 0; j < columns; ++j) {
+			if (i == rows - 1 && j == columns - 1) {
 				puzzle->Set_element(i,j,0);
 				puzzle->Set_zero_position(i, j);
 				break;
@@ -193,10 +281,10 @@ void SettingValuesManually(Puzzle* puzzle, int rows, int cols) {
 	cout << "Thank you! The 15-puzzle is now ready!" << endl;
 }
 
-void SettingValuesAuto(Puzzle* puzzle, int rows, int cols) {
+void SettingValuesAuto(Puzzle* puzzle) {
 	for (int i = 0; i < rows; ++i) {
-		for (int j = 0; j < cols; ++j) {
-			if (i == rows - 1 && j == cols - 1) {
+		for (int j = 0; j < columns; ++j) {
+			if (i == rows - 1 && j == columns - 1) {
 				puzzle->Set_element(i, j, 0);
 				puzzle->Set_zero_position(i, j);
 				break;
@@ -221,7 +309,7 @@ void CreatePuzzleConfigurationsRandomly() {
 	my15file << inputAmount << endl;
 	for (int i = 0; i < inputAmount; ++i) {
 		Puzzle randPuzzle;
-		SettingValuesAuto(&randPuzzle, randPuzzle.Get_hor_size(), randPuzzle.Get_vert_size());
+		SettingValuesAuto(&randPuzzle);
 		my15file << randPuzzle << endl;
 	}
 	my15file.close();
