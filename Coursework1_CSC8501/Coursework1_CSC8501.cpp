@@ -6,7 +6,6 @@
 
 #include "Puzzle.h"
 
-#include <string>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -19,7 +18,7 @@ bool isExistingNumber(int givenInput, Puzzle* puzzleArr);
 void SettingValuesManually(Puzzle* puzzle);
 void SettingValuesAuto(Puzzle* puzzle);
 void CreatePuzzleConfigurationsRandomly();
-void moveAndCalculateContinuous(Puzzle* puzzle);
+string moveAndCalculateContinuous(Puzzle* puzzle, int count);
 int FindContinuousRows(Puzzle* puzzle, bool reversed);
 int FindContinuousCols(Puzzle* puzzle, bool reversed);
 bool startOverGame();
@@ -28,6 +27,7 @@ void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& 
 void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle);
 bool turnHasCompleted(Puzzle* puzzle);
 void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullRowString, int& fileRow, int& i);
+void PrintContinuousElements(int& contRowsTotal, int& contColsTotal, int& revContRowsTotal, int& revContColsTotal);
 int rows, columns;
 
 int main()
@@ -63,9 +63,12 @@ void ReadPuzzleFromFileAndMoveAround() {
 		Puzzle puz;
 		int i = 0;
 		int fileRow = 0;
+		int countPuzzles=0;
+		string resultsForFile;
 		while (getline(my15file, fullRowString)) {
 			if (i >= rows) {
-				moveAndCalculateContinuous(&puz);
+				++countPuzzles;;				
+				resultsForFile += moveAndCalculateContinuous(&puz, countPuzzles);
 				Puzzle puz;
 				i = 0;
 			}
@@ -74,6 +77,12 @@ void ReadPuzzleFromFileAndMoveAround() {
 			}
 		}
 		my15file.close();
+
+		ofstream solutionFile;
+		solutionFile.open("Solution-File.txt");
+		solutionFile << resultsForFile;
+		cout << "Results are now written in the Solution-File.txt !" << endl;
+		solutionFile.close();
 	}
 	catch(exception){
 		cout << "In order to use a file, I have to create it first." << endl;
@@ -100,9 +109,11 @@ void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullR
 	++fileRow;
 }
 
-void moveAndCalculateContinuous(Puzzle* puzzle) {
-	cout << endl << *puzzle;
-	int countMoves = 1;
+string moveAndCalculateContinuous(Puzzle* puzzle, int count) {
+	std::ostringstream resultsStrStream;
+	resultsStrStream << count << "\n";
+	resultsStrStream << *puzzle;
+	//cout << endl << *puzzle;
 	int prevPositionX = rows - 1;
 	int prevPositionY = columns - 1;
 	int continuousRowsPerTurn = 0, continuousColsPerTurn = 0, revContinuousRowsPerTurn = 0, revContinuousColsPerTurn = 0;
@@ -132,10 +143,11 @@ void moveAndCalculateContinuous(Puzzle* puzzle) {
 		revContinuousRowsTotal += revContinuousRowsPerTurn;
 		revContinuousColsTotal += revContinuousColsPerTurn;
 	}
-	cout << "row: " << continuousRowsTotal << endl;
-	cout << "column: " << continuousColsTotal << endl;
-	cout << "reverse row: " << revContinuousRowsTotal << endl;
-	cout << "reverse column: " << revContinuousColsTotal << endl;
+	//PrintContinuousElements(continuousRowsTotal, continuousColsTotal, revContinuousRowsTotal, revContinuousColsTotal);
+	resultsStrStream << "row: " << continuousRowsTotal << endl << "column: " << continuousColsTotal << endl;
+	resultsStrStream << "reverse row: " << revContinuousRowsTotal << endl << "reverse column: " << revContinuousColsTotal << endl << endl;
+	string results = resultsStrStream.str();
+	return results;
 }
 
 bool turnHasCompleted(Puzzle* puzzle) {
@@ -169,6 +181,13 @@ void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int&
 	revContRows += FindContinuousRows(puzzle, true);
 	contCols += FindContinuousCols(puzzle, false);
 	revContCols += FindContinuousCols(puzzle, true);
+}
+
+void PrintContinuousElements(int& contRowsTotal, int& contColsTotal, int& revContRowsTotal, int& revContColsTotal) {
+	cout << "row: " << contRowsTotal << endl;
+	cout << "column: " << contColsTotal << endl;
+	cout << "reverse row: " << revContRowsTotal << endl;
+	cout << "reverse column: " << revContColsTotal << endl;
 }
 
 int FindContinuousRows(Puzzle* puzzle, bool reversed) {
@@ -311,6 +330,7 @@ void CreatePuzzleConfigurationsRandomly() {
 		SettingValuesAuto(&randPuzzle);
 		my15file << randPuzzle << endl;
 	}
+	cout << "Generated puzzles are now written in the 15-File.txt !" << endl;
 	my15file.close();
 }
 

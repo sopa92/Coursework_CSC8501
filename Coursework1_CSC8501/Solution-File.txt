@@ -1,0 +1,100 @@
+1
+1 7 14 9 
+4 18 2 5 
+11 15 16 13 
+12 6 19  
+row: 18
+column: 52
+reverse row: 49
+reverse column: 7
+
+2
+15 14 3 11 
+2 13 4 1 
+8 7 17 19 
+9 18 16  
+row: 7
+column: 9
+reverse row: 34
+reverse column: 59
+
+3
+15 10 2 8 
+6 4 5 9 
+1 13 3 14 
+16 11 19  
+row: 11
+column: 46
+reverse row: 41
+reverse column: 82
+
+4
+6 3 17 18 
+2 9 1 13 
+15 19 4 10 
+5 12 16  
+row: 27
+column: 4
+reverse row: 14
+reverse column: 19
+
+5
+15 7 14 11 
+12 10 1 4 
+6 17 13 3 
+5 9 18  
+row: 76
+column: 70
+reverse row: 98
+reverse column: 24
+
+6
+1 8 2 6 
+10 13 11 15 
+19 4 17 3 
+16 14 18  
+row: 3
+column: 34
+reverse row: 15
+reverse column: 24
+
+7
+18 8 7 13 
+3 1 10 17 
+14 9 16 15 
+11 19 4  
+row: 44
+column: 77
+reverse row: 61
+reverse column: 38
+
+8
+8 4 9 2 
+15 5 13 3 
+7 14 18 16 
+1 17 12  
+row: 63
+column: 63
+reverse row: 65
+reverse column: 34
+
+9
+2 18 12 19 
+10 17 11 15 
+8 16 14 6 
+13 9 4  
+row: 42
+column: 123
+reverse row: 36
+reverse column: 59
+
+10
+16 1 18 2 
+11 19 17 12 
+9 15 10 3 
+8 5 6  
+row: 84
+column: 40
+reverse row: 18
+reverse column: 54
+
