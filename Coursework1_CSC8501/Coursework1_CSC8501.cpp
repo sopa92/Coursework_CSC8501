@@ -5,13 +5,12 @@
 
 
 #include "Puzzle.h"
-
 #include <fstream>
 #include <sstream>
 #include <algorithm>
 
 using namespace std;
-
+void PrintMenu();
 int GetInputNumber();
 int GetInputNumber(Puzzle* puzzleArr);
 bool isExistingNumber(int givenInput, Puzzle* puzzleArr);
@@ -31,9 +30,10 @@ void PrintContinuousElements(int& contRowsTotal, int& contColsTotal, int& revCon
 int rows, columns;
 
 int main()
-{
+{	
 	bool startOver = true;
 	while (startOver) {
+		PrintMenu();
 		Puzzle mainPuzzle;
 		rows = (&mainPuzzle)->Get_hor_size();
 		columns = (&mainPuzzle)->Get_vert_size();
@@ -390,3 +390,17 @@ bool isExistingNumber(int givenInput, Puzzle* puzzleArr) {
 	}
 	return false;
 }
+
+
+void PrintMenu() {
+	cout << endl;
+	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - + - +" << endl;
+	cout << "| W | e | l | c | o | m | e |  | a | b | o | a | r | d | ! |" << endl;
+	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - + - +" << endl;
+	cout << endl;
+	cout << "What do you wish to do? Choose a number from below." << endl;
+	cout << " 1 - I want to create my own 15-puzzle." << endl;
+	cout << " 2 - I want you to create some 15-puzzles." << endl;
+	cout << " 3 - I want to read 15-puzzles from a file" << endl;
+}
+
