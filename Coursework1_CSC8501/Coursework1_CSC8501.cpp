@@ -51,6 +51,8 @@ int main()
 	return 0;
 }
 
+
+
 void ReadPuzzleFromFileAndMoveAround() {
 	try {
 		ifstream my15file;
@@ -67,7 +69,7 @@ void ReadPuzzleFromFileAndMoveAround() {
 				Puzzle puz;
 				i = 0;
 			}
-			if (fullRowString.size() > 7 && i < rows) {
+			if (fullRowString.size() > ((rows*2)-2) && i < rows) {
 				readPuzzleArrayFromFile(&puz, fullRows, fullRowString, fileRow, i);
 			}
 		}
@@ -232,9 +234,6 @@ int FindContinuousCols(Puzzle* puzzle, bool reversed) {
 		}
 		if (isContinuous) {
 			++continuousCols;
-			//cout << "Col: " << puzzle->Get_element(0, j) << " < " << puzzle->Get_element(1, j) << " < " << puzzle->Get_element(2, j) << " < " << puzzle->Get_element(3, j) << endl;
-			/*cout << "there are continuous cols" << endl;
-			cout << *puzzle;*/
 		}
 	}
 	return continuousCols;
@@ -363,8 +362,8 @@ int GetInputNumber(Puzzle* puzzleArr) {
 }
 
 bool isExistingNumber(int givenInput, Puzzle* puzzleArr) {
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
+	for (int i = 0; i < rows; ++i) {
+		for (int j = 0; j < columns; ++j) {
 			if (puzzleArr->Get_element(i,j) == givenInput)
 				return true;
 		}
