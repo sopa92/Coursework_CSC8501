@@ -22,13 +22,12 @@ int FindContinuousRows(Puzzle* puzzle, bool reversed);
 int FindContinuousCols(Puzzle* puzzle, bool reversed);
 bool startOverGame();
 void ReadPuzzleFromFileAndMoveAround();
-void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence);
+void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence, vector<Puzzle*> puzzleStates);
 void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle);
 bool turnHasCompleted(Puzzle* puzzle);
 void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullRowString, int& fileRow, int& i);
 void PrintContinuousElements(int& contRowsTotal, int& contColsTotal, int& revContRowsTotal, int& revContColsTotal);
 char GetInputOption(char optionA, char optionB);
-//void selectionSort(int arr[], int n);
 int rows, columns;
 
 int main()
@@ -136,7 +135,11 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count) {
 		string moveSequence;
 		continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
 		do {
-			MoveAround(puzzle, prevPositionX, prevPositionY, moveSequence);
+			cout << *puzzle;
+			cout << "------ \n";
+			vector<Puzzle*> puzzleStates;
+			puzzleStates.push_back(puzzle);
+			MoveAround(puzzle, prevPositionX, prevPositionY, moveSequence, puzzleStates);
 			FindContinuousElements(continuousRowsPerTurn, revContinuousRowsPerTurn, continuousColsPerTurn, revContinuousColsPerTurn, puzzle);
 			if (turnHasCompleted(puzzle)) {
 				if (find(movesSequences.begin(), movesSequences.end(), moveSequence) == movesSequences.end())
@@ -166,7 +169,7 @@ bool turnHasCompleted(Puzzle* puzzle) {
 	return (puzzle->Get_zero_x() == rows - 1 && puzzle->Get_zero_y() == columns - 1);
 }
 
-void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence) {
+void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence, vector<Puzzle*> puzzleStates) {
 	vector<char> availSwaps;
 	bool moved = false;
 	int zero_x = puzzle->Get_zero_x();
@@ -174,15 +177,36 @@ void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& 
 	puzzle->GetAvailableSwaps(availSwaps, rows, columns, zero_x, zero_y);
 	int attempts = 1;
 	while (!moved) {
-		int randValue = rand() % availSwaps.size();
-		char direction = availSwaps[randValue];
-		moved = puzzle->MoveRandomlyAround(direction, zero_x, zero_y, puzzle, prevPositionX, prevPositionY, attempts);
-		if (!moved)
-			availSwaps.erase(availSwaps.begin() + (randValue));
-		else {
-			moveSequence += direction;
-			prevPositionX = zero_x;
-			prevPositionY = zero_y;
+		for (char direction : availSwaps) {
+			Puzzle* newStatePuzzle = new Puzzle(puzzle);
+			moved = (*newStatePuzzle).MoveRandomlyAround(direction, zero_x, zero_y, newStatePuzzle, prevPositionX, prevPositionY, attempts);
+			if (!moved) {
+				vector<char>::iterator itr = find(availSwaps.begin(), availSwaps.end(), direction);
+				if (itr != availSwaps.end())
+				{
+					int index = itr - availSwaps.begin();
+					availSwaps.erase(availSwaps.begin() + (index));
+				}
+			}
+			else {
+				cout << direction << "\n";
+				cout << newStatePuzzle;
+				cout << "________ \n";
+				moveSequence += direction;
+				prevPositionX = zero_x;
+				prevPositionY = zero_y;
+				vector<Puzzle*>::iterator iter = find(puzzleStates.begin(), puzzleStates.end(), newStatePuzzle);
+				//TO DO: check repetition
+				if (iter == puzzleStates.end())
+				{
+					puzzleStates.push_back(newStatePuzzle);
+					MoveAround(newStatePuzzle, prevPositionX, prevPositionY, moveSequence, puzzleStates);
+				}
+				else {
+					cout << "repetition \n";
+					cout << "________ \n";
+				}
+			}
 		}
 	}
 	availSwaps.clear();
@@ -223,45 +247,6 @@ void SettingValuesManually(Puzzle* puzzle) {
 }
 
 void SettingValuesAuto(Puzzle* puzzle) {
-
-	//int arrayList[9];
-	//int arraySolution[9];
-	//int arraySize = sizeof(arrayList) / sizeof(int);
-	//int maxNumber = 0;
-	//for (int k = 0; k < arraySize-1; k++) {
-	//	int rndNumber = rand() % 20;
-	//	//int* searchPosition = find(begin(arrayList), end(arrayList), rndNumber);
-	//	while (find(begin(arrayList), end(arrayList), rndNumber) != end(arrayList) || rndNumber==0) {
-	//		rndNumber = rand() % 20;
-	//	}
-	//	arrayList[k] = arraySolution[k] = rndNumber;
-	//	if (rndNumber > maxNumber) {
-	//		maxNumber = rndNumber;
-	//	}
-	//}
-	//arrayList[arraySize-1] = 0;
-	//arraySolution[arraySize - 1] = maxNumber+1;
-	//for (int i = 0; i < arraySize; ++i)
-	//{
-	//	cout << arrayList[i] << "\t";
-	//}
-	//	
-	//selectionSort(arraySolution, 9);
-
-	//int zeroPos = arraySize - 1;
-	//for (int i = 0; i < arraySize; ++i)
-	//{
-	//	for (int j = 0; j < arraySize; ++j)
-	//	{
-	//		while (arrayList[i] != arraySolution[j])
-	//		{
-	//			swap(arrayList[zeroPos], arrayList[zeroPos -1]);
-	//			--zeroPos;
-	//		}
-	//	}
-	//	cout << arrayList[i] << "\t";
-	//	
-	//}
 	for (int i = 0; i < rows; ++i) {
 		for (int j = 0; j < columns; ++j) {
 			if (i == rows - 1 && j == columns - 1) {
@@ -269,9 +254,9 @@ void SettingValuesAuto(Puzzle* puzzle) {
 				puzzle->Set_zero_position(i, j);
 				break;
 			}
-			int rndNumber = rand() % 20;
+			int rndNumber = rand() % (rows * 5);
 			while (isExistingNumber(rndNumber, puzzle)) {
-				rndNumber = rand() % 20;
+				rndNumber = rand() % (rows * 5);
 			}
 			puzzle->Set_element(i, j, rndNumber);
 		}

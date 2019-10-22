@@ -9,6 +9,21 @@ Puzzle::Puzzle(int x, int y): hor_size(x), vert_size(y)
 	}
 }
 
+Puzzle::Puzzle(Puzzle* puz): hor_size(puz->Get_hor_size()), vert_size(puz->Get_vert_size())
+{
+	puzzleArr = new int* [hor_size];
+	for (int i = 0; i < hor_size; ++i) {
+		puzzleArr[i] = new int[vert_size];
+		memset(puzzleArr[i], 0, (vert_size * sizeof(int)));
+	}
+
+	for (int i = 0; i < hor_size; ++i) {
+		for (int j = 0; j < vert_size; ++j) {
+			this->Set_element(i, j, puz->Get_element(i, j));
+		}
+	}
+}
+
 Puzzle::~Puzzle()
 {
 	for (int i = 0; i < hor_size; ++i) {
