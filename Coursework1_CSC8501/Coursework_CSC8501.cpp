@@ -18,15 +18,17 @@ void SettingValuesManually(Puzzle* puzzle);
 void SettingValuesAuto(Puzzle* puzzle);
 void CreatePuzzleConfigurationsRandomly();
 string moveAndCalculateContinuous(Puzzle* puzzle, int count, char printAction);
-int FindContinuousRows(Puzzle* puzzle, bool reversed);
-int FindContinuousCols(Puzzle* puzzle, bool reversed);
+int FindContinuousRows(Puzzle* puzzle, bool reversed, vector<string>& calculatedElements);
+int FindContinuousCols(Puzzle* puzzle, bool reversed, vector<string>& calculatedElements);
 bool startOverGame();
 void ReadPuzzleFromFileAndMoveAround();
 void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence);
-void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle);
+void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle, vector<string>& calculatedElements);
 bool turnHasCompleted(Puzzle* puzzle);
 void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullRowString, int& fileRow, int& i);
 void PrintContinuousElements(int& contRowsTotal, int& contColsTotal, int& revContRowsTotal, int& revContColsTotal);
+int AskUserForContinuousElements();
+void FindNPartialContinuousElements(Puzzle* mainPuzzle, int N);
 char GetInputOption(char optionA, char optionB);
 int rows, columns;
 
@@ -45,12 +47,15 @@ int main()
 		columns = (&mainPuzzle)->Get_vert_size();
 
 		if (response == 1) {
-			//SettingValuesManually(&mainPuzzle);
-			SettingValuesAuto(&mainPuzzle);
+			SettingValuesManually(&mainPuzzle);
+			//SettingValuesAuto(&mainPuzzle);
 			cout << mainPuzzle << endl;
+			int N = AskUserForContinuousElements();
+			FindNPartialContinuousElements(&mainPuzzle, N);
 		}
-		else if(response==2)
+		else if (response == 2) {
 			CreatePuzzleConfigurationsRandomly();
+		}
 		else
 			ReadPuzzleFromFileAndMoveAround();
 		
@@ -61,7 +66,36 @@ int main()
 	return 0;
 }
 
-
+int AskUserForContinuousElements() {
+	cout << "Do you want me to calculate how many N-partial continuous rows, columns, \nreverse rows and reverse columns exist in this configuration? (Y/N)" << endl;
+	char answer = GetInputOption('Y', 'N');
+	if (answer == 'N') {
+		return 0;
+	}
+	cout << "What will be the N?" << endl;
+	int N = GetInputNumber(2, 4);
+	return N;
+}
+void FindNPartialContinuousElements(Puzzle* mainPuzzle, int N) {
+	
+	int twoPartialRows = 0, twoPartialCols = 0, twoPartialRevRows = 0, twoPartialRevCols = 0;
+	vector<string> calculatedElements;
+	int pos = 0;
+	for (int i = 0; i <= rows - N; ++i) {
+		for (int j = 0; j <= columns - N; ++j) {
+			Puzzle* miniPuzzle = new Puzzle(N, N);
+			for (int posX = 0; posX < N; ++posX) {
+				for (int posY = 0; posY < N; ++posY) {
+					miniPuzzle->Set_element(posX, posY, mainPuzzle->Get_element(i + posX, j + posY));
+				}
+			}
+			FindContinuousElements(twoPartialRows, twoPartialRevRows, twoPartialCols, twoPartialRevCols, miniPuzzle, calculatedElements);
+			delete miniPuzzle;
+			miniPuzzle = NULL;
+		}
+	}
+	PrintContinuousElements(twoPartialRows, twoPartialCols, twoPartialRevRows, twoPartialRevCols);
+}
 
 void ReadPuzzleFromFileAndMoveAround() {
 	try {
@@ -129,7 +163,7 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, char printAction) {
 	std::ostringstream resultsStrStream;
 	resultsStrStream << count << "\n";
 	resultsStrStream << *puzzle;
-	if (printAction == 'y') {
+	if (printAction == 'Y') {
 		cout << endl << *puzzle;
 	}
 	int prevPositionX = rows - 1;
@@ -143,7 +177,7 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, char printAction) {
 		continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
 		do {
 			MoveAround(puzzle, prevPositionX, prevPositionY, moveSequence);
-			FindContinuousElements(continuousRowsPerTurn, revContinuousRowsPerTurn, continuousColsPerTurn, revContinuousColsPerTurn, puzzle);
+			FindContinuousElements(continuousRowsPerTurn, revContinuousRowsPerTurn, continuousColsPerTurn, revContinuousColsPerTurn, puzzle, movesSequences);
 			if (turnHasCompleted(puzzle)) {
 				if (find(movesSequences.begin(), movesSequences.end(), moveSequence) == movesSequences.end())
 				{
@@ -162,7 +196,7 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, char printAction) {
 		revContinuousColsTotal += revContinuousColsPerTurn;
 	}
 	
-	if (printAction == 'y') {
+	if (printAction == 'Y') {
 		PrintContinuousElements(continuousRowsTotal, continuousColsTotal, revContinuousRowsTotal, revContinuousColsTotal);
 	}
 	resultsStrStream << "row: " << continuousRowsTotal << endl << "column: " << continuousColsTotal << endl;
@@ -200,7 +234,7 @@ void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& 
 bool startOverGame() {
 	cout << "Do you want to start over? (Y/N)" << endl;
 	char answer = GetInputOption('Y', 'N');
-	if (answer == 'y') {
+	if (answer == 'Y') {
 		system("CLS");
 		return true;
 	}
@@ -258,14 +292,14 @@ void CreatePuzzleConfigurationsRandomly() {
 		my15file.open("15-File.txt");
 	}
 	my15file << inputAmount << endl;
-	if (printAction == 'y') {
+	if (printAction == 'Y') {
 		cout << inputAmount << endl;
 	}
 	for (int i = 0; i < inputAmount; ++i) {
 		Puzzle randPuzzle;
 		SettingValuesAuto(&randPuzzle);
 		my15file << randPuzzle << endl;
-		if (printAction == 'y') {
+		if (printAction == 'Y') {
 			cout << randPuzzle << endl;
 		}
 		else if(inputAmount > 5000 and  0 == i % 100)
@@ -288,7 +322,7 @@ char GetInputOption(char optionA, char optionB){
 			break;
 		}
 	}
-	return answer;
+	return toupper(answer);
 }
 
 int GetInputNumber(int min, int max) {
@@ -362,15 +396,15 @@ void PrintMenu() {
 	cout << endl;
 	cout << "What do you wish to do? Choose a number from below." << endl;
 	cout << " 1 - I want to create my own 15-puzzle." << endl;
-	cout << " 2 - I want you to create some 15-puzzles." << endl;
+	cout << " 2 - I want you to generate some 15-puzzles and write them in a file." << endl;
 	cout << " 3 - I want to read 15-puzzles from a file and deduce continuous elements in all their turns." << endl;
 }
 
-void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle) {
-	contRows += FindContinuousRows(puzzle, false);
-	revContRows += FindContinuousRows(puzzle, true);
-	contCols += FindContinuousCols(puzzle, false);
-	revContCols += FindContinuousCols(puzzle, true);
+void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle, vector<string>& calculatedElements) {
+	contRows += FindContinuousRows(puzzle, false, calculatedElements);
+	revContRows += FindContinuousRows(puzzle, true, calculatedElements);
+	contCols += FindContinuousCols(puzzle, false, calculatedElements);
+	revContCols += FindContinuousCols(puzzle, true, calculatedElements);
 }
 
 void PrintContinuousElements(int& contRowsTotal, int& contColsTotal, int& revContRowsTotal, int& revContColsTotal) {
@@ -380,70 +414,84 @@ void PrintContinuousElements(int& contRowsTotal, int& contColsTotal, int& revCon
 	cout << "reverse column: " << revContColsTotal << endl;
 }
 
-int FindContinuousRows(Puzzle* puzzle, bool reversed) {
+int FindContinuousRows(Puzzle* puzzle, bool reversed, vector<string>& calculatedElements) {
+	int rows = puzzle->Get_hor_size();
+	int cols = puzzle->Get_vert_size();
+	string checkedElements;
 	int continuousRows = 0;
 	bool isContinuous = true;
 	for (int i = 0; i < rows; ++i) {
 		isContinuous = true;
-		if (puzzle->Get_element(i, columns - 1) == 0) {
+		if (puzzle->Get_element(i, cols - 1) == 0) {
 			isContinuous = false;
+			checkedElements.clear();
 			continue;
 		}
-		for (int j = 0; j < columns - 1; ++j) {
+		for (int j = 0; j < cols - 1; ++j) {
 			int firstElement = puzzle->Get_element(i, j);
 			int nextElement = puzzle->Get_element(i, j + 1);
+			if (checkedElements.find(to_string(firstElement)) == string::npos) {
+				checkedElements += checkedElements.empty() ? to_string(firstElement) : "_" + to_string(firstElement);
+			}
+			checkedElements += "_" + to_string(nextElement);
 			if (firstElement == 0) {
 				isContinuous = false;
+				checkedElements.clear();
 				break;
 			}
-			if (!reversed) {
-				if (nextElement - firstElement != 1) {
-					isContinuous = false;
-				}
-			}
-			else {
-				if (firstElement - nextElement != 1) {
-					isContinuous = false;
-				}
+			if ((!reversed && (firstElement - nextElement != -1)) || (reversed && (firstElement - nextElement != 1))) {
+				isContinuous = false;
+				checkedElements.clear();
 			}
 		}
 		if (isContinuous) {
-			++continuousRows;
+			if (find(calculatedElements.begin(), calculatedElements.end(), checkedElements) == calculatedElements.end()) {
+				++continuousRows;
+				calculatedElements.push_back(checkedElements);
+			}
 		}
+		checkedElements.clear();
 	}
 	return continuousRows;
 }
 
-int FindContinuousCols(Puzzle* puzzle, bool reversed) {
+int FindContinuousCols(Puzzle* puzzle, bool reversed, vector<string>& calculatedElements) {
+	int rows = puzzle->Get_hor_size();
+	int cols = puzzle->Get_vert_size();
+	string checkedElements;
 	int continuousCols = 0;
 	bool isContinuous = true;
-	for (int j = 0; j < columns; ++j) {
+	for (int j = 0; j < cols; ++j) {
 		isContinuous = true;
 		if (puzzle->Get_element(rows - 1, j) == 0) {
 			isContinuous = false;
+			checkedElements.clear();
 			continue;
 		}
 		for (int i = 0; i < rows - 1; ++i) {
 			int firstElement = puzzle->Get_element(i, j);
 			int nextElement = puzzle->Get_element(i + 1, j);
+			if (checkedElements.find(to_string(firstElement)) == string::npos) {
+				checkedElements += checkedElements.empty() ? to_string(firstElement) : "_" + to_string(firstElement);
+			}
+			checkedElements += "_" + to_string(nextElement);
 			if (firstElement == 0) {
 				isContinuous = false;
+				checkedElements.clear();
 				break;
 			}
-			if (!reversed) {
-				if (nextElement - firstElement != 1) {
-					isContinuous = false;
-				}
-			}
-			else {
-				if (firstElement - nextElement != 1) {
-					isContinuous = false;
-				}
+			if ((!reversed && (firstElement - nextElement != -1)) || (reversed && (firstElement - nextElement != 1))) {
+				isContinuous = false;
+				checkedElements.clear();
 			}
 		}
 		if (isContinuous) {
-			++continuousCols;
+			if (find(calculatedElements.begin(), calculatedElements.end(), checkedElements) == calculatedElements.end()) {
+				++continuousCols;
+				calculatedElements.push_back(checkedElements);
+			}
 		}
+		checkedElements.clear();
 	}
 	return continuousCols;
 }
