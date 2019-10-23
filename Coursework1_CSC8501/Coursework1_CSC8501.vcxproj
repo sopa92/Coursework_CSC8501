@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{8C409CD3-AB31-4896-9D78-9277D599BB77}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Coursework1CSC8501</RootNamespace>
+    <RootNamespace>CourseworkCSC8501</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>Coursework_CSC8501</ProjectName>
   </PropertyGroup>
