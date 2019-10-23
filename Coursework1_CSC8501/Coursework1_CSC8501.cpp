@@ -17,7 +17,7 @@ bool isExistingNumber(int givenInput, Puzzle* puzzleArr);
 void SettingValuesManually(Puzzle* puzzle);
 void SettingValuesAuto(Puzzle* puzzle);
 void CreatePuzzleConfigurationsRandomly();
-string moveAndCalculateContinuous(Puzzle* puzzle, int count);
+string moveAndCalculateContinuous(Puzzle* puzzle, int count, char printAction);
 int FindContinuousRows(Puzzle* puzzle, bool reversed);
 int FindContinuousCols(Puzzle* puzzle, bool reversed);
 bool startOverGame();
@@ -66,6 +66,8 @@ int main()
 
 void ReadPuzzleFromFileAndMoveAround() {
 	try {
+		cout << "Do you want me also to print the configurations, apart from exporting them in a file? (Y/N)" << endl;
+		char printAction = GetInputOption('Y', 'N');
 		ifstream my15file;
 		my15file.open("15-File.txt");
 		string fullRowString;
@@ -80,7 +82,7 @@ void ReadPuzzleFromFileAndMoveAround() {
 		while (getline(my15file, fullRowString)) {
 			if (i >= rows) {
 				++countPuzzles;;				
-				resultsForFile += moveAndCalculateContinuous(&puz, countPuzzles);
+				resultsForFile += moveAndCalculateContinuous(&puz, countPuzzles, printAction);
 				Puzzle puz;
 				i = 0;
 			}
@@ -121,18 +123,21 @@ void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullR
 	++fileRow;
 }
 
-string moveAndCalculateContinuous(Puzzle* puzzle, int count) {
+string moveAndCalculateContinuous(Puzzle* puzzle, int count, char printAction) {
+	
 	std::ostringstream resultsStrStream;
 	resultsStrStream << count << "\n";
 	resultsStrStream << *puzzle;
-	//cout << endl << *puzzle;
+	if (printAction == 'y') {
+		cout << endl << *puzzle;
+	}
 	int prevPositionX = rows - 1;
 	int prevPositionY = columns - 1;
 	int continuousRowsPerTurn = 0, continuousColsPerTurn = 0, revContinuousRowsPerTurn = 0, revContinuousColsPerTurn = 0;
 	int continuousRowsTotal = 0, continuousColsTotal = 0, revContinuousRowsTotal = 0, revContinuousColsTotal = 0;
 	vector<string> movesSequences;
 	int existingPath = 0;
-	while (existingPath < 1000) {
+	while (existingPath < 100) {
 		string moveSequence;
 		continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
 		do {
@@ -155,7 +160,10 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count) {
 		revContinuousRowsTotal += revContinuousRowsPerTurn;
 		revContinuousColsTotal += revContinuousColsPerTurn;
 	}
-	//PrintContinuousElements(continuousRowsTotal, continuousColsTotal, revContinuousRowsTotal, revContinuousColsTotal);
+	
+	if (printAction == 'y') {
+		PrintContinuousElements(continuousRowsTotal, continuousColsTotal, revContinuousRowsTotal, revContinuousColsTotal);
+	}
 	resultsStrStream << "row: " << continuousRowsTotal << endl << "column: " << continuousColsTotal << endl;
 	resultsStrStream << "reverse row: " << revContinuousRowsTotal << endl << "reverse column: " << revContinuousColsTotal << endl << endl;
 	string results = resultsStrStream.str();
@@ -458,7 +466,6 @@ bool isExistingNumber(int givenInput, Puzzle* puzzleArr) {
 	return false;
 }
 
-
 void PrintMenu() {
 	cout << endl;
 	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - + - +" << endl;
@@ -470,7 +477,6 @@ void PrintMenu() {
 	cout << " 2 - I want you to create some 15-puzzles." << endl;
 	cout << " 3 - I want to read 15-puzzles from a file and deduce continuous elements in all their turns." << endl;
 }
-
 
 void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle) {
 	contRows += FindContinuousRows(puzzle, false);
