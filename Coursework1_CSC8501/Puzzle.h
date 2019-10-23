@@ -17,10 +17,13 @@ public:
 	int Get_hor_size() const { return hor_size; }
 	int Get_vert_size() const { return vert_size; }
 	friend std::ostream& operator << (std::ostream& ostr, const Puzzle& puzzle);
+	friend bool operator ==(Puzzle& puzzleA, Puzzle& puzzleB);
+	std::string ToString();
 	void GetAvailableSwaps(std::vector<char>& availSwaps, int rows, int cols, int zero_x, int zero_y);
 	bool MoveRandomlyAround(char direction, int zero_x, int zero_y, Puzzle* puzzle, int prev_zero_x, int prev_zero_y, int attempts);
 	int Get_zero_x() const { return zero_pos_x; }
 	int Get_zero_y() const { return zero_pos_y; }
+	int** GetPuzzleArray() { return puzzleArr; }
 	void Set_zero_position(int new_zero_x, int new_zero_y) { zero_pos_x = new_zero_x; zero_pos_y = new_zero_y; }
 protected:
 	int** puzzleArr;
