@@ -7,8 +7,8 @@
 
 class Puzzle {
 public:
-	static const int default_rows = 3;
-	static const int default_cols = 3;
+	static const int default_rows = 4;
+	static const int default_cols = 4;
 	Puzzle(int x = default_rows, int y = default_cols);
 	Puzzle(Puzzle* puz);
 	~Puzzle();
