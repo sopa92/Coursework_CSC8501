@@ -22,7 +22,8 @@ int FindContinuousRows(Puzzle* puzzle, bool reversed);
 int FindContinuousCols(Puzzle* puzzle, bool reversed);
 bool startOverGame();
 void ReadPuzzleFromFileAndMoveAround();
-void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence, vector<string> puzzleStates, int cRows, int cCols, int rcRows, int rcCols);
+void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence);
+//void MoveAroundB(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, vector<string> puzzleStates, int& cRows, int& cCols, int& rcRows, int& rcCols, vector<string> movesSequences, string& moveSequence);
 void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle);
 bool turnHasCompleted(Puzzle* puzzle);
 void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullRowString, int& fileRow, int& i);
@@ -127,20 +128,16 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count) {
 	//cout << endl << *puzzle;
 	int prevPositionX = rows - 1;
 	int prevPositionY = columns - 1;
-	int contRowsPerTurn = 0, contColsPerTurn = 0, revContRowsPerTurn = 0, revContColsPerTurn = 0;
+	int continuousRowsPerTurn = 0, continuousColsPerTurn = 0, revContinuousRowsPerTurn = 0, revContinuousColsPerTurn = 0;
 	int continuousRowsTotal = 0, continuousColsTotal = 0, revContinuousRowsTotal = 0, revContinuousColsTotal = 0;
 	vector<string> movesSequences;
 	int existingPath = 0;
-	while (existingPath<30) {
+	while (existingPath < 1000) {
 		string moveSequence;
-		contRowsPerTurn = contColsPerTurn = revContRowsPerTurn = revContColsPerTurn = 0;
+		continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
 		do {
-			cout << *puzzle;
-			cout << "------ \n";
-			vector<string> puzzleStates;
-			puzzleStates.push_back(puzzle->ToString());
-			MoveAround(puzzle, prevPositionX, prevPositionY, moveSequence, puzzleStates, contRowsPerTurn, revContRowsPerTurn, contColsPerTurn, revContColsPerTurn);
-			
+			MoveAround(puzzle, prevPositionX, prevPositionY, moveSequence);
+			FindContinuousElements(continuousRowsPerTurn, revContinuousRowsPerTurn, continuousColsPerTurn, revContinuousColsPerTurn, puzzle);
 			if (turnHasCompleted(puzzle)) {
 				if (find(movesSequences.begin(), movesSequences.end(), moveSequence) == movesSequences.end())
 				{
@@ -148,15 +145,15 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count) {
 				}
 				else {
 					existingPath++;
-					contRowsPerTurn = contColsPerTurn = revContRowsPerTurn = revContColsPerTurn = 0;
+					continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
 					break;
 				}
-			}			
+			}
 		} while (!turnHasCompleted(puzzle));
-		continuousRowsTotal += contRowsPerTurn;
-		continuousColsTotal += contColsPerTurn;
-		revContinuousRowsTotal += revContRowsPerTurn;
-		revContinuousColsTotal += revContColsPerTurn;
+		continuousRowsTotal += continuousRowsPerTurn;
+		continuousColsTotal += continuousColsPerTurn;
+		revContinuousRowsTotal += revContinuousRowsPerTurn;
+		revContinuousColsTotal += revContinuousColsPerTurn;
 	}
 	//PrintContinuousElements(continuousRowsTotal, continuousColsTotal, revContinuousRowsTotal, revContinuousColsTotal);
 	resultsStrStream << "row: " << continuousRowsTotal << endl << "column: " << continuousColsTotal << endl;
@@ -164,12 +161,45 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count) {
 	string results = resultsStrStream.str();
 	return results;
 }
+//
+//string moveAndCalculateContinuousB(Puzzle* puzzle, int count) {
+//	std::ostringstream resultsStrStream;
+//	resultsStrStream << count << "\n";
+//	resultsStrStream << *puzzle;
+//	//cout << endl << *puzzle;
+//	int prevPositionX = rows - 1;
+//	int prevPositionY = columns - 1;
+//	int contRowsPerTurn = 0, contColsPerTurn = 0, revContRowsPerTurn = 0, revContColsPerTurn = 0;
+//	int continuousRowsTotal = 0, continuousColsTotal = 0, revContinuousRowsTotal = 0, revContinuousColsTotal = 0;
+//	vector<string> movesSequences;
+//	int existingPath = 0;
+//	while (existingPath<30) {
+//		contRowsPerTurn = contColsPerTurn = revContRowsPerTurn = revContColsPerTurn = 0;
+//		do {
+//			cout << *puzzle;
+//			cout << "------ \n";
+//			vector<string> puzzleStates;
+//			string moveSequence;
+//			puzzleStates.push_back(puzzle->ToString());
+//			MoveAround(puzzle, prevPositionX, prevPositionY, puzzleStates, contRowsPerTurn, revContRowsPerTurn, contColsPerTurn, revContColsPerTurn, movesSequences, moveSequence);
+//		} while (!turnHasCompleted(puzzle));
+//		continuousRowsTotal += contRowsPerTurn;
+//		continuousColsTotal += contColsPerTurn;
+//		revContinuousRowsTotal += revContRowsPerTurn;
+//		revContinuousColsTotal += revContColsPerTurn;
+//	}
+//	//PrintContinuousElements(continuousRowsTotal, continuousColsTotal, revContinuousRowsTotal, revContinuousColsTotal);
+//	resultsStrStream << "row: " << continuousRowsTotal << endl << "column: " << continuousColsTotal << endl;
+//	resultsStrStream << "reverse row: " << revContinuousRowsTotal << endl << "reverse column: " << revContinuousColsTotal << endl << endl;
+//	string results = resultsStrStream.str();
+//	return results;
+//}
 
 bool turnHasCompleted(Puzzle* puzzle) {
 	return (puzzle->Get_zero_x() == rows - 1 && puzzle->Get_zero_y() == columns - 1);
 }
 
-void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence, vector<string> puzzleStates, int cRows, int cCols, int rcRows, int rcCols) {
+void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence) {
 	vector<char> availSwaps;
 	bool moved = false;
 	int zero_x = puzzle->Get_zero_x();
@@ -177,43 +207,78 @@ void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& 
 	puzzle->GetAvailableSwaps(availSwaps, rows, columns, zero_x, zero_y);
 	int attempts = 1;
 	while (!moved) {
-		for (char direction : availSwaps) {
-			Puzzle* newStatePuzzle = new Puzzle(puzzle);
-			bool areEqual = *newStatePuzzle == *puzzle;
-			moved = (*newStatePuzzle).MoveRandomlyAround(direction, zero_x, zero_y, newStatePuzzle, prevPositionX, prevPositionY, attempts);
-			if (!moved) {
-				vector<char>::iterator itr = find(availSwaps.begin(), availSwaps.end(), direction);
-				if (itr != availSwaps.end())
-				{
-					int index = itr - availSwaps.begin();
-					availSwaps.erase(availSwaps.begin() + (index));
-				}
-			}
-			else {
-				cout << direction << "\n";
-				cout << *newStatePuzzle;
-				cout << "________ \n";
-				FindContinuousElements(cRows, rcRows, cCols, rcCols, newStatePuzzle);
-				moveSequence += direction;
-				prevPositionX = zero_x;
-				prevPositionY = zero_y;
-				string stateString = newStatePuzzle->ToString();
-				vector<string>::iterator iter = find(puzzleStates.begin(), puzzleStates.end(), stateString);
-				//TO DO: check repetition
-				if (iter == puzzleStates.end())
-				{
-					puzzleStates.push_back(stateString);
-					MoveAround(newStatePuzzle, prevPositionX, prevPositionY, moveSequence, puzzleStates);
-				}
-				else {
-					cout << "repetition \n";
-					cout << "_________________ \n";
-				}
-			}
+		int randValue = rand() % availSwaps.size();
+		char direction = availSwaps[randValue];
+		moved = puzzle->MoveRandomlyAround(direction, zero_x, zero_y, puzzle, prevPositionX, prevPositionY, attempts);
+		if (!moved)
+			availSwaps.erase(availSwaps.begin() + (randValue));
+		else {
+			moveSequence += direction;
+			prevPositionX = zero_x;
+			prevPositionY = zero_y;
 		}
 	}
 	availSwaps.clear();
 }
+
+//
+//void MoveAroundB(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, vector<string> puzzleStates, int &cRows, int &cCols, int &rcRows, int &rcCols, vector<string> movesSequences, string &moveSequence) {
+//	vector<char> availSwaps;
+//	bool moved = false;
+//	int zero_x = puzzle->Get_zero_x();
+//	int zero_y = puzzle->Get_zero_y();
+//	puzzle->GetAvailableSwaps(availSwaps, rows, columns, zero_x, zero_y);
+//	int attempts = 1;
+//	while (!moved) {
+//		for (char direction : availSwaps) {
+//			Puzzle* newStatePuzzle = new Puzzle(puzzle);
+//			moved = (*newStatePuzzle).MoveRandomlyAround(direction, zero_x, zero_y, newStatePuzzle, prevPositionX, prevPositionY, attempts);
+//			if (!moved) {
+//				vector<char>::iterator itr = find(availSwaps.begin(), availSwaps.end(), direction);
+//				if (itr != availSwaps.end())
+//				{
+//					int index = itr - availSwaps.begin();
+//					availSwaps.erase(availSwaps.begin() + (index));
+//				}
+//			}
+//			else {
+//				cout << direction << "\n";
+//				cout << *newStatePuzzle;
+//				cout << "________ \n";
+//				moveSequence += direction;
+//				prevPositionX = zero_x;
+//				prevPositionY = zero_y;
+//				string stateString = newStatePuzzle->ToString();
+//				vector<string>::iterator iter = find(puzzleStates.begin(), puzzleStates.end(), stateString);
+//				if (iter == puzzleStates.end())
+//				{
+//					puzzleStates.push_back(stateString);
+//					FindContinuousElements(cRows, rcRows, cCols, rcCols, newStatePuzzle);
+//					if (turnHasCompleted(newStatePuzzle)) {
+//						if (find(movesSequences.begin(), movesSequences.end(), moveSequence) == movesSequences.end())
+//						{
+//							movesSequences.push_back(moveSequence);	
+//							moveSequence.clear();
+//						}
+//						else {
+//							cRows = cCols = rcRows = rcCols = 0;
+//							moveSequence.clear();
+//							break;
+//						}
+//					}
+//					MoveAround(newStatePuzzle, prevPositionX, prevPositionY, puzzleStates, cRows, cCols, rcRows, rcCols, movesSequences, moveSequence);
+//				}
+//				else {
+//					cout << "repetition \n";
+//					cout << "_________________ \n";
+//				}
+//			}
+//			delete newStatePuzzle;
+//			newStatePuzzle = NULL;
+//		}
+//	}
+//	availSwaps.clear();
+//}
 
 bool startOverGame() {
 	cout << "Do you want to start over? (Y/N)" << endl;
@@ -437,7 +502,7 @@ int FindContinuousRows(Puzzle* puzzle, bool reversed) {
 				isContinuous = false;
 				break;
 			}
-			if (reversed) {
+			if (!reversed) {
 				if (nextElement - firstElement != 1) {
 					isContinuous = false;
 				}
@@ -471,7 +536,7 @@ int FindContinuousCols(Puzzle* puzzle, bool reversed) {
 				isContinuous = false;
 				break;
 			}
-			if (reversed) {
+			if (!reversed) {
 				if (nextElement - firstElement != 1) {
 					isContinuous = false;
 				}
