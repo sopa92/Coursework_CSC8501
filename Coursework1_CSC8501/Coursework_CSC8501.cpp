@@ -23,7 +23,6 @@ int FindContinuousCols(Puzzle* puzzle, bool reversed);
 bool startOverGame();
 void ReadPuzzleFromFileAndMoveAround();
 void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence);
-//void MoveAroundB(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, vector<string> puzzleStates, int& cRows, int& cCols, int& rcRows, int& rcCols, vector<string> movesSequences, string& moveSequence);
 void FindContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle);
 bool turnHasCompleted(Puzzle* puzzle);
 void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullRowString, int& fileRow, int& i);
@@ -83,6 +82,8 @@ void ReadPuzzleFromFileAndMoveAround() {
 			if (i >= rows) {
 				++countPuzzles;;				
 				resultsForFile += moveAndCalculateContinuous(&puz, countPuzzles, printAction);
+				if(printAction=='n' and 0 == fileRow % 10)
+					cout << ". ";
 				Puzzle puz;
 				i = 0;
 			}
@@ -95,7 +96,7 @@ void ReadPuzzleFromFileAndMoveAround() {
 		ofstream solutionFile;
 		solutionFile.open("Solution-File.txt");
 		solutionFile << resultsForFile;
-		cout << "Results are now written in the Solution-File.txt !" << endl;
+		cout << endl << "Results are now written in the Solution-File.txt !" << endl;
 		solutionFile.close();
 	}
 	catch(exception){
@@ -137,7 +138,7 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, char printAction) {
 	int continuousRowsTotal = 0, continuousColsTotal = 0, revContinuousRowsTotal = 0, revContinuousColsTotal = 0;
 	vector<string> movesSequences;
 	int existingPath = 0;
-	while (existingPath < 100) {
+	while (existingPath < 10) {
 		string moveSequence;
 		continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
 		do {
@@ -169,39 +170,6 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, char printAction) {
 	string results = resultsStrStream.str();
 	return results;
 }
-//
-//string moveAndCalculateContinuousB(Puzzle* puzzle, int count) {
-//	std::ostringstream resultsStrStream;
-//	resultsStrStream << count << "\n";
-//	resultsStrStream << *puzzle;
-//	//cout << endl << *puzzle;
-//	int prevPositionX = rows - 1;
-//	int prevPositionY = columns - 1;
-//	int contRowsPerTurn = 0, contColsPerTurn = 0, revContRowsPerTurn = 0, revContColsPerTurn = 0;
-//	int continuousRowsTotal = 0, continuousColsTotal = 0, revContinuousRowsTotal = 0, revContinuousColsTotal = 0;
-//	vector<string> movesSequences;
-//	int existingPath = 0;
-//	while (existingPath<30) {
-//		contRowsPerTurn = contColsPerTurn = revContRowsPerTurn = revContColsPerTurn = 0;
-//		do {
-//			cout << *puzzle;
-//			cout << "------ \n";
-//			vector<string> puzzleStates;
-//			string moveSequence;
-//			puzzleStates.push_back(puzzle->ToString());
-//			MoveAround(puzzle, prevPositionX, prevPositionY, puzzleStates, contRowsPerTurn, revContRowsPerTurn, contColsPerTurn, revContColsPerTurn, movesSequences, moveSequence);
-//		} while (!turnHasCompleted(puzzle));
-//		continuousRowsTotal += contRowsPerTurn;
-//		continuousColsTotal += contColsPerTurn;
-//		revContinuousRowsTotal += revContRowsPerTurn;
-//		revContinuousColsTotal += revContColsPerTurn;
-//	}
-//	//PrintContinuousElements(continuousRowsTotal, continuousColsTotal, revContinuousRowsTotal, revContinuousColsTotal);
-//	resultsStrStream << "row: " << continuousRowsTotal << endl << "column: " << continuousColsTotal << endl;
-//	resultsStrStream << "reverse row: " << revContinuousRowsTotal << endl << "reverse column: " << revContinuousColsTotal << endl << endl;
-//	string results = resultsStrStream.str();
-//	return results;
-//}
 
 bool turnHasCompleted(Puzzle* puzzle) {
 	return (puzzle->Get_zero_x() == rows - 1 && puzzle->Get_zero_y() == columns - 1);
@@ -228,65 +196,6 @@ void MoveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& 
 	}
 	availSwaps.clear();
 }
-
-//
-//void MoveAroundB(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, vector<string> puzzleStates, int &cRows, int &cCols, int &rcRows, int &rcCols, vector<string> movesSequences, string &moveSequence) {
-//	vector<char> availSwaps;
-//	bool moved = false;
-//	int zero_x = puzzle->Get_zero_x();
-//	int zero_y = puzzle->Get_zero_y();
-//	puzzle->GetAvailableSwaps(availSwaps, rows, columns, zero_x, zero_y);
-//	int attempts = 1;
-//	while (!moved) {
-//		for (char direction : availSwaps) {
-//			Puzzle* newStatePuzzle = new Puzzle(puzzle);
-//			moved = (*newStatePuzzle).MoveRandomlyAround(direction, zero_x, zero_y, newStatePuzzle, prevPositionX, prevPositionY, attempts);
-//			if (!moved) {
-//				vector<char>::iterator itr = find(availSwaps.begin(), availSwaps.end(), direction);
-//				if (itr != availSwaps.end())
-//				{
-//					int index = itr - availSwaps.begin();
-//					availSwaps.erase(availSwaps.begin() + (index));
-//				}
-//			}
-//			else {
-//				cout << direction << "\n";
-//				cout << *newStatePuzzle;
-//				cout << "________ \n";
-//				moveSequence += direction;
-//				prevPositionX = zero_x;
-//				prevPositionY = zero_y;
-//				string stateString = newStatePuzzle->ToString();
-//				vector<string>::iterator iter = find(puzzleStates.begin(), puzzleStates.end(), stateString);
-//				if (iter == puzzleStates.end())
-//				{
-//					puzzleStates.push_back(stateString);
-//					FindContinuousElements(cRows, rcRows, cCols, rcCols, newStatePuzzle);
-//					if (turnHasCompleted(newStatePuzzle)) {
-//						if (find(movesSequences.begin(), movesSequences.end(), moveSequence) == movesSequences.end())
-//						{
-//							movesSequences.push_back(moveSequence);	
-//							moveSequence.clear();
-//						}
-//						else {
-//							cRows = cCols = rcRows = rcCols = 0;
-//							moveSequence.clear();
-//							break;
-//						}
-//					}
-//					MoveAround(newStatePuzzle, prevPositionX, prevPositionY, puzzleStates, cRows, cCols, rcRows, rcCols, movesSequences, moveSequence);
-//				}
-//				else {
-//					cout << "repetition \n";
-//					cout << "_________________ \n";
-//				}
-//			}
-//			delete newStatePuzzle;
-//			newStatePuzzle = NULL;
-//		}
-//	}
-//	availSwaps.clear();
-//}
 
 bool startOverGame() {
 	cout << "Do you want to start over? (Y/N)" << endl;
@@ -338,29 +247,6 @@ void SettingValuesAuto(Puzzle* puzzle) {
 	}
 }
 
-void swap(int* a, int* b) {
-	int temp = *a; 
-	*a = *b;
-	*b = temp;
-}
-void selectionSort(int arr[], int n)
-{
-	int i, j, min_idx;
-
-	// One by one move boundary of unsorted subarray  
-	for (i = 0; i < n - 1; i++)
-	{
-		// Find the minimum element in unsorted array  
-		min_idx = i;
-		for (j = i + 1; j < n; j++)
-			if (arr[j] < arr[min_idx])
-				min_idx = j;
-
-		// Swap the found minimum element with the first element  
-		swap(&arr[min_idx], &arr[i]);
-	}
-}
-
 void CreatePuzzleConfigurationsRandomly() {
 	cout << "How many 15-puzzle configurations do you want me to create?" << endl;
 	int inputAmount = GetInputNumber(0,0);
@@ -382,8 +268,10 @@ void CreatePuzzleConfigurationsRandomly() {
 		if (printAction == 'y') {
 			cout << randPuzzle << endl;
 		}
+		else if(inputAmount > 5000 and  0 == i % 100)
+			cout << ". ";
 	}
-	cout << "Generated puzzles are succesfully written in the 15-File.txt !" << endl;
+	cout << endl << "Generated puzzles are succesfully written in the 15-File.txt !" << endl;
 	my15file.close();
 }
 
@@ -468,9 +356,9 @@ bool isExistingNumber(int givenInput, Puzzle* puzzleArr) {
 
 void PrintMenu() {
 	cout << endl;
-	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - + - +" << endl;
-	cout << "| W | e | l | c | o | m | e |  | a | b | o | a | r | d | ! |" << endl;
-	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - + - +" << endl;
+	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - +" << endl;
+	cout << "| W | e | l | c | o | m | e |  | a | b | o | a | r | d |" << endl;
+	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - +" << endl;
 	cout << endl;
 	cout << "What do you wish to do? Choose a number from below." << endl;
 	cout << " 1 - I want to create my own 15-puzzle." << endl;
