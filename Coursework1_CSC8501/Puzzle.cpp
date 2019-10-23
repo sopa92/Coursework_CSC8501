@@ -31,7 +31,20 @@ Puzzle::~Puzzle()
 	}
 	delete[] puzzleArr;
 }
-
+
+bool operator==(Puzzle& puzzleA, Puzzle& puzzleB)
+{
+	int** puzzleArrayA = puzzleA.GetPuzzleArray();
+	int** puzzleArrayB = puzzleB.GetPuzzleArray();
+	for (int i = 0; i < puzzleA.Get_hor_size(); ++i) {
+		for (int j = 0; j < puzzleA.Get_vert_size(); ++j) {
+			if (puzzleArrayB[i][j] != puzzleArrayA[i][j]) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
 
 std::ostream& operator<<(std::ostream& ostr, const Puzzle& puzzle)
 {
@@ -46,6 +59,18 @@ std::ostream& operator<<(std::ostream& ostr, const Puzzle& puzzle)
 		ostr << std::endl;
 	}
 	return ostr;
+}
+
+std::string Puzzle::ToString()
+{
+	std::string puzzleArrString;
+	for (int i = 0; i < (*this).Get_hor_size(); ++i) {
+		for (int j = 0; j < (*this).Get_vert_size(); ++j) {
+			puzzleArrString += std::to_string((*this).Get_element(i, j));
+			puzzleArrString += " ";
+		}
+	}
+	return puzzleArrString;
 }
 
 void Puzzle::GetAvailableSwaps(std::vector<char>& availSwaps, int rows, int cols, int zero_x, int zero_y ){
