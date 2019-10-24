@@ -31,20 +31,6 @@ Puzzle::~Puzzle()
 	}
 	delete[] puzzleArr;
 }
-
-bool operator==(Puzzle& puzzleA, Puzzle& puzzleB)
-{
-	int** puzzleArrayA = puzzleA.GetPuzzleArray();
-	int** puzzleArrayB = puzzleB.GetPuzzleArray();
-	for (int i = 0; i < puzzleA.Get_hor_size(); ++i) {
-		for (int j = 0; j < puzzleA.Get_vert_size(); ++j) {
-			if (puzzleArrayB[i][j] != puzzleArrayA[i][j]) {
-				return false;
-			}
-		}
-	}
-	return true;
-}
 
 std::ostream& operator<<(std::ostream& ostr, const Puzzle& puzzle)
 {
