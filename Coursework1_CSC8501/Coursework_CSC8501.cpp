@@ -239,12 +239,21 @@ bool isExistingNumber(int givenInput, Puzzle* puzzleArr, int row, int col) {
 }
 
 void readPuzzleFromFileAndMoveAround() {
-	try {
+	
 		string filename = askForFilename();
 		ifstream my15file;
-		my15file.open(filename);
 		string fullRowString;
 		istringstream iss(fullRowString);
+		try {
+			my15file.open(filename.c_str());
+			if (my15file.fail())
+				throw invalid_argument("There is no such file, as " + filename + ".");
+		}
+		catch (const invalid_argument& ex) {
+			cout << ex.what() << endl << "In order to use a file, you have to create it first." << endl;
+			my15file.close();
+			return;
+		}
 		cout << "Do you want me also to print the configurations, apart from exporting them in a file? (Y/N)" << endl;
 		char printAction = getInputOption('Y', 'N');
 		vector<string> fullRows;
@@ -262,7 +271,14 @@ void readPuzzleFromFileAndMoveAround() {
 				i = 0;
 			}
 			if (fullRowString.size() > minRowSize && i < rows) {
-				readPuzzleArrayFromFile(&puz, fullRows, fullRowString, fileRow, i);
+				try {
+					readPuzzleArrayFromFile(&puz, fullRows, fullRowString, fileRow, i);
+				}
+				catch (const invalid_argument& e) {
+					cout << e.what() << endl << "Terminating..." << endl;
+					my15file.close();
+					return;
+				}
 			}
 		}
 		my15file.close();
@@ -272,17 +288,13 @@ void readPuzzleFromFileAndMoveAround() {
 		solutionFile << resultsForFile;
 		cout << endl << "Results are now written in the Solution-File.txt !" << endl;
 		solutionFile.close();
-	}
-	catch(exception){
-		cout << "In order to use a file, you have to create it first." << endl;
-	}
 }
 
 string askForFilename() {
 	cout << "What is the name of the file you want to open?" << endl;
 	string answer;
 	cin >> answer;
-	regex rgx_filename("[a-zA-Z0-9 -_]+\.[A-Za-z]{3}");
+	regex rgx_filename("[a-zA-Z0-9 _-]+\\.[A-Za-z]{3}");
 	while (!regex_match(answer, rgx_filename)) {
 		cout << "Invalid filename. Please type in a valid filename" << endl;
 		cin >> answer;
@@ -302,6 +314,10 @@ void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullR
 		if (ssin.good()) {
 			int intValue;
 			ssin >> intValue;
+			if (intValue == 0) {
+				string errorString = "Invalid value found in line " + to_string(i + 2);
+				throw invalid_argument(errorString);
+			}
 			if (!fullRows.empty())
 				puz->Set_element(i, j, intValue);
 		}
