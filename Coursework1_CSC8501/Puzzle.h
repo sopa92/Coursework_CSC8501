@@ -19,7 +19,7 @@ public:
 	friend std::ostream& operator << (std::ostream& ostr, const Puzzle& puzzle);
 	std::string ToString();
 	void GetAvailableSwaps(std::vector<char>& availSwaps, int rows, int cols, int zero_x, int zero_y);
-	bool MoveRandomlyAround(char direction, int zero_x, int zero_y, Puzzle* puzzle, int prev_zero_x, int prev_zero_y, int attempts);
+	bool MoveBlock(char direction, int zero_x, int zero_y, Puzzle* puzzle, int prev_zero_x, int prev_zero_y, int attempts);
 	int Get_zero_x() const { return zero_pos_x; }
 	int Get_zero_y() const { return zero_pos_y; }
 	int** GetPuzzleArray() { return puzzleArr; }

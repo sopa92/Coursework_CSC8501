@@ -2,6 +2,9 @@
 //Project:		Coursework part1 + part 2
 //Author:		Sofia Papadopoulou - 190338075
 //Acad. Year:	2019-2020
+//Git Repo:		https://github.com/sopa92/Coursework_CSC8501.git
+//References:	http://www.cplusplus.com, https://www.stackoverflow.com, https://www.geeksforgeeks.org, https://www.jstor.org (websites)
+//				The C++ Standard Library - Nicolai M. Josuttis (book)
 
 
 #include "Puzzle.h"
@@ -10,6 +13,7 @@
 #include <algorithm>
 #include <random>
 #include <regex>
+#include <functional>
 
 using namespace std;
 template <typename T>
@@ -21,12 +25,11 @@ void chooseManualOrAutoWay(Puzzle* puzzle);
 void settingValuesManually(Puzzle* puzzle, int puzzleBlocks);
 void createPuzzleConfigurationsRandomly();
 void settingValuesAuto(Puzzle* puzzle, int row, int col);
-bool isExistingNumber(int givenInput, Puzzle* puzzleArr, int row, int col);
 void readPuzzleFromFileAndMoveAround();
 string askForFilename();
 void readPuzzleArrayFromFile(Puzzle* puz, vector<string>& fullRows, string fullRowString, int& fileRow, int& i);
 string moveAndCalculateContinuous(Puzzle* puzzle, int count, bool printAction);
-void moveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence);
+void moveRandomlyAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence);
 void findContinuousElements(int& contRows, int& revContRows, int& contCols, int& revContCols, Puzzle* puzzle, vector<string>& calculatedElements);
 int findContinuousRows(Puzzle* puzzle, bool reversed, vector<string>& calculatedElements);
 int findContinuousCols(Puzzle* puzzle, bool reversed, vector<string>& calculatedElements);
@@ -42,14 +45,14 @@ int main()
 {	
 	bool startOver = true;
 	int dimension = 4;
-	printMenu(15);
+	int default_blocks = 15;
+	printMenu(default_blocks);
 	
 	while (startOver) {
 		int response = getInputNumber(1, 4);
 
 		Puzzle mainPuzzle(dimension, dimension);
-		rows = (&mainPuzzle)->Get_hor_size();
-		columns = (&mainPuzzle)->Get_vert_size();
+		rows = columns = dimension;
 
 		if (response == 1) {
 			chooseManualOrAutoWay(&mainPuzzle);
@@ -72,22 +75,22 @@ int main()
 
 		startOver = startOverGame();
 		if(startOver) 
-			printMenu(15);
+			printMenu(default_blocks);
 	}
 	return 0;
 }
 
 template <typename T>
-void printMenu(T dimension) {
+void printMenu(T blocks) {
 	cout << endl;
 	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - +" << endl;
 	cout << "| W | e | l | c | o | m | e |  | a | b | o | a | r | d |" << endl;
 	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - +" << endl;
 	cout << endl;
 	cout << "What do you wish to do? Choose a number from below." << endl;
-	cout << " 1 - I want to create my own "<< dimension <<"-puzzle." << endl;
-	cout << " 2 - I want you to generate some " << dimension << "-puzzles and write them in a file." << endl;
-	cout << " 3 - I want you to read " << dimension << "-puzzles from a file and deduce the continuous elements." << endl;
+	cout << " 1 - I want to create my own "<< blocks <<"-puzzle." << endl;
+	cout << " 2 - I want you to generate some " << blocks << "-puzzles and write them in a file." << endl;
+	cout << " 3 - I want you to read " << blocks << "-puzzles from a file and deduce the continuous elements." << endl;
 	cout << " 4 - I want to use different dimensions' puzzle." << endl;
 }
 
@@ -117,6 +120,9 @@ int getInputNumber(int min, int max) {
 }
 
 int getInputNumber(Puzzle* puzzleArr) {
+	function<bool(int, Puzzle*)> isExistingNumber = [](int givenInput, Puzzle* puzzleArr) {
+		for (int i = 0; i < rows; ++i) { for (int j = 0; j < columns; ++j) { if (puzzleArr->Get_element(i, j) == givenInput) return true; } } return false;
+	};
 	int puzzleBlocks = (rows * rows) - 1;
 	int givenInput = 0;
 	cout << "Type your chosen number and press Enter:" << endl;
@@ -133,7 +139,7 @@ int getInputNumber(Puzzle* puzzleArr) {
 			cout << "You should type a number between 1 and " << puzzleBlocks + 5 << "." << endl;
 			cin >> givenInput;
 		}
-		else if (isExistingNumber(givenInput, puzzleArr, rows, columns)) {
+		else if (isExistingNumber(givenInput, puzzleArr)) {
 			cout << "You must not choose an existing number. \nPlease type another number between 1 and " << puzzleBlocks + 5 << "." << endl;
 			cin >> givenInput;
 		}
@@ -274,15 +280,6 @@ void settingValuesAuto(Puzzle* puzzle, int row, int col) {
 	randArray = NULL;
 }
 
-bool isExistingNumber(int givenInput, Puzzle* puzzleArr, int row, int col) {
-	for (int i = 0; i < row; ++i) {
-		for (int j = 0; j < col; ++j) {
-			if (puzzleArr->Get_element(i, j) == givenInput)
-				return true;
-		}
-	}
-	return false;
-}
 
 void readPuzzleFromFileAndMoveAround() {
 	
@@ -323,8 +320,6 @@ void readPuzzleFromFileAndMoveAround() {
 					my15file.close();
 					return;
 				}
-				if (printAction == 'N' && fullRowString.size() > 25)
-					cout << ". ";
 			}
 		}
 		my15file.close();
@@ -394,7 +389,7 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, bool printAction) {
 	string moveSequence;
 	continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
 	do {
-		moveAround(puzzle, prevPositionX, prevPositionY, moveSequence);
+		moveRandomlyAround(puzzle, prevPositionX, prevPositionY, moveSequence);
 		findContinuousElements(continuousRowsPerTurn, revContinuousRowsPerTurn, continuousColsPerTurn, revContinuousColsPerTurn, puzzle, calculatedElements);
 		Partial2onTurn += findNPartialContinuousElements(puzzle, 2, true, false);
 		Partial3onTurn += findNPartialContinuousElements(puzzle, 3, true, false);
@@ -414,7 +409,6 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, bool printAction) {
 	revContinuousRowsTotal += revContinuousRowsPerTurn;
 	revContinuousColsTotal += revContinuousColsPerTurn;
 	int Partial4onTurn = continuousRowsTotal + continuousColsTotal + revContinuousRowsTotal + revContinuousColsTotal;
-	
 
 	if (printAction) {
 		printContinuousElements(continuousRowsTotal, continuousColsTotal, revContinuousRowsTotal, revContinuousColsTotal);
@@ -429,7 +423,7 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, bool printAction) {
 	return results;
 }
 
-void moveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence) {
+void moveRandomlyAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& moveSequence) {
 	vector<char> availSwaps;
 	bool moved = false;
 	int zero_x = puzzle->Get_zero_x();
@@ -439,9 +433,11 @@ void moveAround(Puzzle* puzzle, int& prevPositionX, int& prevPositionY, string& 
 	while (!moved) {
 		int randValue = rand() % availSwaps.size();
 		char direction = availSwaps[randValue];
-		moved = puzzle->MoveRandomlyAround(direction, zero_x, zero_y, puzzle, prevPositionX, prevPositionY, attempts);
-		if (!moved)
+		moved = puzzle->MoveBlock(direction, zero_x, zero_y, puzzle, prevPositionX, prevPositionY, attempts);
+		if (!moved) {
 			availSwaps.erase(availSwaps.begin() + (randValue));
+			if (rows > 15) cout << ". ";
+		}
 		else {
 			moveSequence += direction;
 			prevPositionX = zero_x;
@@ -559,6 +555,10 @@ int askUserForNPartialContinuousElements() {
 	}
 	cout << "What will be the N?" << endl;
 	int N = getInputNumber(2, 4);
+	while (N > rows) { 
+		cout << "The N you chose is bigger than the dimensions of the puzzle. \nThere are no " << N << "-partial continuous elements in a " << rows << " by " << rows << " puzzle." << endl;
+		N = getInputNumber(2, 4);
+	}
 	return N;
 }
 

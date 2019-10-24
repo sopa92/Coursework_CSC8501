@@ -70,7 +70,7 @@ void Puzzle::GetAvailableSwaps(std::vector<char>& availSwaps, int rows, int cols
 		availSwaps.push_back('L');
 }
 
-bool Puzzle::MoveRandomlyAround(char direction, int zero_x, int zero_y, Puzzle* puzzle, int prev_zero_x, int prev_zero_y, int attempts) {
+bool Puzzle::MoveBlock(char direction, int zero_x, int zero_y, Puzzle* puzzle, int prev_zero_x, int prev_zero_y, int attempts) {
 	
 	switch (direction) {
 	case 'U':
