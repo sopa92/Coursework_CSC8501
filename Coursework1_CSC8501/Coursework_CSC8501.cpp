@@ -75,6 +75,7 @@ void GenerateNPuzzleAndFindContinuous() {
 	Puzzle* nPuzzle = new Puzzle(N, N);
 	rows = columns = N;
 	SettingValuesAuto(nPuzzle, N, N);
+	cout << *nPuzzle << endl;
 	int Partial2onConfig = FindNPartialContinuousElements(nPuzzle, 2, true, false);
 	int Partial3onConfig = FindNPartialContinuousElements(nPuzzle, 3, true, false);
 	int Partial4onConfig = FindNPartialContinuousElements(nPuzzle, 4, true, false);
@@ -321,7 +322,6 @@ void SettingValuesAuto(Puzzle* puzzle, int row, int col) {
 	}
 	delete[] randArray;
 	randArray = NULL;
-	cout << *puzzle << endl;
 }
 
 void CreatePuzzleConfigurationsRandomly() {
