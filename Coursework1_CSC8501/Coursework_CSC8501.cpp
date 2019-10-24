@@ -378,7 +378,7 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, bool printAction) {
 	int continuousRowsTotal = 0, continuousColsTotal = 0, revContinuousRowsTotal = 0, revContinuousColsTotal = 0;
 	vector<string> movesSequences, calculatedElements;
 	int nContElementsSum = 0;
-	int Partial2onConfig, Partial3onConfig, Partial4onConfig, Partial2onTurn = 0, Partial3onTurn = 0;
+	int Partial2onConfig, Partial3onConfig, Partial4onConfig, Partial2onTurn = 0, Partial3onTurn = 0, Partial4onTurn = 0;
 	Partial2onConfig = findNPartialContinuousElements(puzzle, 2, true, false);
 	Partial3onConfig = findNPartialContinuousElements(puzzle, 3, true, false);
 	Partial4onConfig = findNPartialContinuousElements(puzzle, 4, true, false);
@@ -387,7 +387,6 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, bool printAction) {
 		cout << endl << *puzzle;
 	}
 	string moveSequence;
-	continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
 	do {
 		moveRandomlyAround(puzzle, prevPositionX, prevPositionY, moveSequence);
 		findContinuousElements(continuousRowsPerTurn, revContinuousRowsPerTurn, continuousColsPerTurn, revContinuousColsPerTurn, puzzle, calculatedElements);
@@ -408,7 +407,7 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, bool printAction) {
 	continuousColsTotal += continuousColsPerTurn;
 	revContinuousRowsTotal += revContinuousRowsPerTurn;
 	revContinuousColsTotal += revContinuousColsPerTurn;
-	int Partial4onTurn = continuousRowsTotal + continuousColsTotal + revContinuousRowsTotal + revContinuousColsTotal;
+	Partial4onTurn = continuousRowsTotal + continuousColsTotal + revContinuousRowsTotal + revContinuousColsTotal;
 
 	if (printAction) {
 		printContinuousElements(continuousRowsTotal, continuousColsTotal, revContinuousRowsTotal, revContinuousColsTotal);

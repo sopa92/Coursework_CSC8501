@@ -7,9 +7,7 @@
 
 class Puzzle {
 public:
-	static const int default_rows = 4;
-	static const int default_cols = 4;
-	Puzzle(int x = default_rows, int y = default_cols);
+	Puzzle(int x, int y );
 	Puzzle(Puzzle* puz);
 	~Puzzle();
 	void Set_element(int row, int col, int new_value) { puzzleArr[row][col] = new_value; }
@@ -30,9 +28,5 @@ protected:
 	int vert_size;
 	int zero_pos_x;
 	int zero_pos_y;
-	void moveRight(int x, int y, Puzzle& puzzle);
-	void moveLeft(int x, int y, Puzzle& puzzle);
-	void moveUp(int x, int y, Puzzle& puzzle);
-	void moveDown(int x, int y, Puzzle& puzzle);
 	void swap(int x, int y, Puzzle* puzzle, int new_x, int new_y);
 };

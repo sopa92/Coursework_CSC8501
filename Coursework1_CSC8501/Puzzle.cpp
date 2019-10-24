@@ -102,22 +102,6 @@ bool Puzzle::MoveBlock(char direction, int zero_x, int zero_y, Puzzle* puzzle, i
 	return true;
 }
 
-void Puzzle::moveRight(int x, int y, Puzzle& puzzle) {
-	swap(x, y, &puzzle, x, y + 1);
-}
-
-void Puzzle::moveLeft(int x, int y, Puzzle& puzzle) {
-	swap(x, y, &puzzle, x, y - 1);
-}
-
-void Puzzle::moveUp(int x, int y, Puzzle& puzzle) {
-	swap(x, y, &puzzle, x - 1, y);
-}
-
-void Puzzle::moveDown(int x, int y, Puzzle& puzzle) {
-	swap(x, y, &puzzle, x + 1, y);
-}
-
 void Puzzle::swap(int x, int y, Puzzle* puzzle, int new_x, int new_y) {
 	puzzle->Set_element(x, y, puzzle->Get_element(new_x, new_y));
 	puzzle->Set_element(new_x, new_y, 0);
