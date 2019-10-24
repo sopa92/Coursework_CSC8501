@@ -1,5 +1,5 @@
 //Course:		CSC8501
-//Project:		Coursework part1
+//Project:		Coursework part1 + part 2
 //Author:		Sofia Papadopoulou - 190338075
 //Acad. Year:	2019-2020
 
@@ -12,11 +12,13 @@
 #include <regex>
 
 using namespace std;
-void printMenu();
+template <typename T>
+void printMenu(T dimension);
 int getInputNumber(int min, int max);
 int getInputNumber(Puzzle* puzzleArr);
 char getInputOption(char optionA, char optionB);
-void settingValuesManually(Puzzle* puzzle);
+void chooseManualOrAutoWay(Puzzle* puzzle);
+void settingValuesManually(Puzzle* puzzle, int puzzleBlocks);
 void createPuzzleConfigurationsRandomly();
 void settingValuesAuto(Puzzle* puzzle, int row, int col);
 bool isExistingNumber(int givenInput, Puzzle* puzzleArr, int row, int col);
@@ -39,21 +41,18 @@ int rows, columns;
 int main()
 {	
 	bool startOver = true;
-
+	int dimension = 4;
+	printMenu(15);
+	
 	while (startOver) {
-
-		printMenu();
-
 		int response = getInputNumber(1, 4);
 
-		Puzzle mainPuzzle;
+		Puzzle mainPuzzle(dimension, dimension);
 		rows = (&mainPuzzle)->Get_hor_size();
 		columns = (&mainPuzzle)->Get_vert_size();
 
 		if (response == 1) {
-			settingValuesManually(&mainPuzzle);
-			int N = askUserForNPartialContinuousElements();
-			findNPartialContinuousElements(&mainPuzzle, N, false, true);
+			chooseManualOrAutoWay(&mainPuzzle);
 		}
 		else if (response == 2) {
 			createPuzzleConfigurationsRandomly();
@@ -62,30 +61,39 @@ int main()
 			readPuzzleFromFileAndMoveAround();
 		}
 		else {
-			generateNPuzzleAndFindContinuous();
+			cout << "What are the dimensions you want? Type a number between 2 and 100" << endl;
+			int N = getInputNumber(2, 100);
+			dimension = N;
+			startOver = true;
+			system("CLS");
+			printMenu('N');
+			continue;
 		}
 
 		startOver = startOverGame();
+		if(startOver) 
+			printMenu(15);
 	}
 	return 0;
 }
 
-void printMenu() {
+template <typename T>
+void printMenu(T dimension) {
 	cout << endl;
 	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - +" << endl;
 	cout << "| W | e | l | c | o | m | e |  | a | b | o | a | r | d |" << endl;
 	cout << "+ - + - + - + - + - + - + - +  + - + - + - + - + - + - +" << endl;
 	cout << endl;
 	cout << "What do you wish to do? Choose a number from below." << endl;
-	cout << " 1 - I want to create my own 15-puzzle." << endl;
-	cout << " 2 - I want you to generate some 15-puzzles and write them in a file." << endl;
-	cout << " 3 - I want you to read 15-puzzles from a file and deduce the continuous elements." << endl;
-	cout << " 4 - I want you to generate an different dimension puzzle and deduce the continuous elements." << endl;
+	cout << " 1 - I want to create my own "<< dimension <<"-puzzle." << endl;
+	cout << " 2 - I want you to generate some " << dimension << "-puzzles and write them in a file." << endl;
+	cout << " 3 - I want you to read " << dimension << "-puzzles from a file and deduce the continuous elements." << endl;
+	cout << " 4 - I want to use different dimensions' puzzle." << endl;
 }
 
 int getInputNumber(int min, int max) {
 	int givenInput = 0;
-	cout << endl << "Type a number and press Enter:" << endl;
+	cout << "Type a number and press Enter:" << endl;
 	cin >> givenInput;
 	while (true) {
 		if (cin.fail())
@@ -109,23 +117,24 @@ int getInputNumber(int min, int max) {
 }
 
 int getInputNumber(Puzzle* puzzleArr) {
+	int puzzleBlocks = (rows * rows) - 1;
 	int givenInput = 0;
-	cout << endl << "Type your chosen number and press Enter:" << endl;
+	cout << "Type your chosen number and press Enter:" << endl;
 	cin >> givenInput;
 	while (true) {
 		if (cin.fail())
 		{
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
-			cout << "Invalid input. Please type a number between 1 and 20." << endl;
+			cout << "Invalid input. Please type a number between 1 and " << puzzleBlocks + 5 << "." << endl;
 			cin >> givenInput;
 		}
-		else if (givenInput < 1 || givenInput >20) {
-			cout << "You should type a number between 1 and 20." << endl;
+		else if (givenInput < 1 || givenInput >(puzzleBlocks + 5)) {
+			cout << "You should type a number between 1 and " << puzzleBlocks + 5 << "." << endl;
 			cin >> givenInput;
 		}
 		else if (isExistingNumber(givenInput, puzzleArr, rows, columns)) {
-			cout << "You must not choose an existing number. \nPlease type another number between 1 and 20." << endl;
+			cout << "You must not choose an existing number. \nPlease type another number between 1 and " << puzzleBlocks + 5 << "." << endl;
 			cin >> givenInput;
 		}
 		else {
@@ -152,11 +161,46 @@ char getInputOption(char optionA, char optionB) {
 	return toupper(answer);
 }
 
-void settingValuesManually(Puzzle* puzzle) {
-	cout << "Please give me 15 numbers between 1 and 20." << endl;
-	cout << "| 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 | 13 | 14 | 15 |" << endl;
+void chooseManualOrAutoWay(Puzzle* puzzle) {
+	int puzzleBlocks = (rows * rows) - 1;
+	if (puzzleBlocks < 25) {
+		settingValuesManually(puzzle, puzzleBlocks);
+	}
+	else{
+		cout << "Are you sure you want to type in all those numbers? (Y/N)" << endl;
+		char certainAnswer = getInputOption('Y', 'N');
+		if (certainAnswer == 'N') {
+			cout << "Do you want me to generate a puzzle for you? (Y/N)" << endl;
+			char autoGenAnswer = getInputOption('Y', 'N');
+			if (autoGenAnswer == 'Y') {
+				settingValuesAuto(puzzle, rows, columns);
+				cout << *puzzle << endl;
+				int N = 0;
+				do {
+					N = askUserForNPartialContinuousElements();
+					if (N > 0)
+						findNPartialContinuousElements(puzzle, N, false, true);
+				} while (N != 0);
+			}
+			return;
+		}
+		else {
+			settingValuesManually(puzzle, puzzleBlocks);
+		}
+	}
+}
+
+void settingValuesManually(Puzzle* puzzle, int puzzleBlocks) {
+	
+	cout << "Please give me "<< puzzleBlocks <<" numbers between 1 and "<< puzzleBlocks+5 << "." << endl;
+	string printedArray;
+	for (int i = 0; i < puzzleBlocks; ++i) {
+		cout << "| " << i+1 << " " ;
+		printedArray += "| __ ";
+	}
+	cout << "|" << endl;
+	printedArray += "|";
 	cout << "----------------------------------------------------------------------------" << endl;
-	string printedArray = "| __ | __ | __ | __ | __ | __ | __ | __ | __ | __ | __ | __ | __ | __ | __ |";
 	string unfilledGap = "__";
 	cout << printedArray << endl;
 	for (int i = 0; i < rows; ++i) {
@@ -172,36 +216,39 @@ void settingValuesManually(Puzzle* puzzle) {
 			cout << printedArray << endl;
 		}
 	}
-	cout << "Thank you! The 15-puzzle is now ready!" << endl;
+	cout << "Thank you! The " << puzzleBlocks << "-puzzle is now ready!" << endl;
 	cout << *puzzle << endl;
+
+	int N = askUserForNPartialContinuousElements();
+	if (N > 0)
+		findNPartialContinuousElements(puzzle, N, false, true);
 }
 
 void createPuzzleConfigurationsRandomly() {
-	cout << "How many 15-puzzle configurations do you want me to create?" << endl;
+	int puzzleBlocks = (rows * rows) - 1;
+	cout << "How many "<< puzzleBlocks << "-puzzle configurations do you want me to create?" << endl;
 	int inputAmount = getInputNumber(0, 0);
+	string filename = askForFilename();
 	cout << "Do you want me also to print the configurations, apart from exporting them in a file? (Y/N)" << endl;
 	char printAction = getInputOption('Y', 'N');
-	ofstream my15file;
-	if (!my15file.is_open())
-	{
-		my15file.open("15-File.txt");
-	}
-	my15file << inputAmount << endl;
+	ofstream myNfile;	
+	myNfile.open(filename.c_str());
+	myNfile << inputAmount << endl;
 	if (printAction == 'Y') {
 		cout << inputAmount << endl;
 	}
 	for (int i = 0; i < inputAmount; ++i) {
-		Puzzle randPuzzle;
+		Puzzle randPuzzle(rows, columns);
 		settingValuesAuto(&randPuzzle, rows, columns);
-		my15file << randPuzzle << endl;
+		myNfile << randPuzzle << endl;
 		if (printAction == 'Y') {
 			cout << randPuzzle << endl;
 		}
 		else if (inputAmount > 5000 and 0 == i % 100)
-			cout << ". ";
+			cout << ". . . ";
 	}
-	cout << endl << "Generated puzzles are succesfully written in the 15-File.txt !" << endl;
-	my15file.close();
+	cout << endl << "Generated puzzles are succesfully written in the "<< filename <<" !" << endl;
+	myNfile.close();
 }
 
 void settingValuesAuto(Puzzle* puzzle, int row, int col) {
@@ -210,8 +257,7 @@ void settingValuesAuto(Puzzle* puzzle, int row, int col) {
 	for (int i = 0; i < numbersNeeded; ++i) {
 		randArray[i] = i + 1;
 	}
-	unsigned seed = 0;
-	shuffle(randArray, randArray + numbersNeeded, default_random_engine(seed));
+	random_shuffle(randArray, randArray + numbersNeeded);
 	int k = 0;
 	for (int i = 0; i < row; ++i) {
 		for (int j = 0; j < col; ++j) {
@@ -257,17 +303,15 @@ void readPuzzleFromFileAndMoveAround() {
 		cout << "Do you want me also to print the configurations, apart from exporting them in a file? (Y/N)" << endl;
 		char printAction = getInputOption('Y', 'N');
 		vector<string> fullRows;
-		Puzzle puz;
+		Puzzle puz(rows,columns);
 		int i = 0, fileRow = 0, countPuzzles = 0;
 		int minRowSize = (rows * 2) - 2;
 		string resultsForFile;
 		while (getline(my15file, fullRowString)) {
 			if (i >= rows) {
 				++countPuzzles;;				
-				resultsForFile += moveAndCalculateContinuous(&puz, countPuzzles, printAction == 'Y');
-				if(printAction=='N' && fileRow >1000 && (fileRow % 10)==0)
-					cout << ". ";
-				Puzzle puz;
+				resultsForFile += moveAndCalculateContinuous(&puz, countPuzzles, printAction == 'Y');								
+				Puzzle puz(rows, columns);
 				i = 0;
 			}
 			if (fullRowString.size() > minRowSize && i < rows) {
@@ -279,6 +323,8 @@ void readPuzzleFromFileAndMoveAround() {
 					my15file.close();
 					return;
 				}
+				if (printAction == 'N' && fullRowString.size() > 25)
+					cout << ". ";
 			}
 		}
 		my15file.close();
@@ -291,7 +337,7 @@ void readPuzzleFromFileAndMoveAround() {
 }
 
 string askForFilename() {
-	cout << "What is the name of the file you want to open?" << endl;
+	cout << "What is the name of the file you want me to use?" << endl;
 	string answer;
 	cin >> answer;
 	regex rgx_filename("[a-zA-Z0-9 _-]+\\.[A-Za-z]{3}");
@@ -338,8 +384,6 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, bool printAction) {
 	vector<string> movesSequences, calculatedElements;
 	int nContElementsSum = 0;
 	int Partial2onConfig, Partial3onConfig, Partial4onConfig, Partial2onTurn = 0, Partial3onTurn = 0;
-	//int existingPath = 0;
-	//while (existingPath < 10) {
 	Partial2onConfig = findNPartialContinuousElements(puzzle, 2, true, false);
 	Partial3onConfig = findNPartialContinuousElements(puzzle, 3, true, false);
 	Partial4onConfig = findNPartialContinuousElements(puzzle, 4, true, false);
@@ -360,7 +404,6 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, bool printAction) {
 				movesSequences.push_back(moveSequence);
 			}
 			else {
-				//existingPath++;
 				continuousRowsPerTurn = continuousColsPerTurn = revContinuousRowsPerTurn = revContinuousColsPerTurn = 0;
 				break;
 			}
@@ -371,7 +414,7 @@ string moveAndCalculateContinuous(Puzzle* puzzle, int count, bool printAction) {
 	revContinuousRowsTotal += revContinuousRowsPerTurn;
 	revContinuousColsTotal += revContinuousColsPerTurn;
 	int Partial4onTurn = continuousRowsTotal + continuousColsTotal + revContinuousRowsTotal + revContinuousColsTotal;
-	//}
+	
 
 	if (printAction) {
 		printContinuousElements(continuousRowsTotal, continuousColsTotal, revContinuousRowsTotal, revContinuousColsTotal);
