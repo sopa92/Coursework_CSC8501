@@ -17,7 +17,6 @@ public:
 	int Get_hor_size() const { return hor_size; }
 	int Get_vert_size() const { return vert_size; }
 	friend std::ostream& operator << (std::ostream& ostr, const Puzzle& puzzle);
-	friend bool operator ==(Puzzle& puzzleA, Puzzle& puzzleB);
 	std::string ToString();
 	void GetAvailableSwaps(std::vector<char>& availSwaps, int rows, int cols, int zero_x, int zero_y);
 	bool MoveRandomlyAround(char direction, int zero_x, int zero_y, Puzzle* puzzle, int prev_zero_x, int prev_zero_y, int attempts);
